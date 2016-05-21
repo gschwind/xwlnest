@@ -95,6 +95,7 @@ typedef struct {
     unsigned int lineBias;
     CloseScreenProcPtr closeScreen;
 
+    int wayland_fd;
     struct wl_display *display;
     struct wl_registry *registry;
 
@@ -914,6 +915,51 @@ static const struct wl_registry_listener registry_listener = {
     global_remove
 };
 
+static void
+socket_handler(int fd, int ready, void *data)
+{
+    vfbScreenInfoPtr pvfb = data;
+    int ret;
+
+    ret = wl_display_read_events(pvfb->display);
+    if (ret == -1)
+        FatalError("failed to dispatch Wayland events: %s\n", strerror(errno));
+
+    //pvfb->prepare_read = 0;
+
+    ret = wl_display_dispatch_pending(pvfb->display);
+    if (ret == -1)
+        FatalError("failed to dispatch Wayland events: %s\n", strerror(errno));
+}
+
+static void
+wakeup_handler(void *data, int err, void *pRead)
+{
+}
+
+static void
+block_handler(void *data, OSTimePtr pTimeout, void *pRead)
+{
+//    vfbScreenInfoPtr pvfb = data;
+//    int ret;
+//
+//    xwl_screen_post_damage(pvfb);
+//
+//    while (pvfb->prepare_read == 0 &&
+//           wl_display_prepare_read(pvfb->display) == -1) {
+//        ret = wl_display_dispatch_pending(pvfb->display);
+//        if (ret == -1)
+//            FatalError("failed to dispatch Wayland events: %s\n",
+//                       strerror(errno));
+//    }
+//
+//    pvfb->prepare_read = 1;
+//
+//    ret = wl_display_flush(pvfb->display);
+//    if (ret == -1)
+//        FatalError("failed to write to XWayland fd: %s\n", strerror(errno));
+}
+
 
 static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
@@ -1024,6 +1070,11 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
         ErrorF("could not connect to wayland server\n");
         return FALSE;
     }
+
+    /* listen to wayland fd */
+    pvfb->wayland_fd = wl_display_get_fd(pvfb->display);
+    SetNotifyFd(pvfb->wayland_fd, socket_handler, X_NOTIFY_READ, pvfb);
+    RegisterBlockAndWakeupHandlers(block_handler, wakeup_handler, pvfb);
 
     return ret;
 
