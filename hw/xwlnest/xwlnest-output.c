@@ -125,10 +125,6 @@ ddxUseMsg(void)
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
     ErrorF("-whitepixel n          pixel value for white\n");
-
-#ifdef HAS_SHM
-    ErrorF("-shmem                 put framebuffers in shared memory\n");
-#endif
 }
 
 int
