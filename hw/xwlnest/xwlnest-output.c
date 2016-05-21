@@ -299,56 +299,6 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
     return TRUE;
 }
 
-static char *
-vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
-{
-//    if (pvfb->pfbMemory)
-//        return pvfb->pfbMemory; /* already done */
-
-    pvfb->sizeInBytes = pvfb->paddedBytesWidth * pvfb->height;
-    return malloc(pvfb->sizeInBytes);
-
-//    /* Calculate how many entries in colormap.  This is rather bogus, because
-//     * the visuals haven't even been set up yet, but we need to know because we
-//     * have to allocate space in the file for the colormap.  The number 10
-//     * below comes from the MAX_PSEUDO_DEPTH define in cfbcmap.c.
-//     */
-//
-//    if (pvfb->depth <= 10) {    /* single index colormaps */
-//        pvfb->ncolors = 1 << pvfb->depth;
-//    }
-//    else {                      /* decomposed colormaps */
-//        int nplanes_per_color_component = pvfb->depth / 3;
-//
-//        if (pvfb->depth % 3)
-//            nplanes_per_color_component++;
-//        pvfb->ncolors = 1 << nplanes_per_color_component;
-//    }
-//
-//    /* add extra bytes for XWDFileHeader, window name, and colormap */
-//
-//    pvfb->sizeInBytes += SIZEOF(XWDheader) + XWD_WINDOW_NAME_LEN +
-//        pvfb->ncolors * SIZEOF(XWDColor);
-//
-//    pvfb->pXWDHeader = NULL;
-//    switch (fbmemtype) {
-//    case NORMAL_MEMORY_FB:
-//        pvfb->pXWDHeader = (XWDFileHeader *) malloc(pvfb->sizeInBytes);
-//        break;
-//    }
-//
-//    if (pvfb->pXWDHeader) {
-//        pvfb->pXWDCmap = (XWDColor *) ((char *) pvfb->pXWDHeader
-//                                       + SIZEOF(XWDheader) +
-//                                       XWD_WINDOW_NAME_LEN);
-//        pvfb->pfbMemory = (char *) (pvfb->pXWDCmap + pvfb->ncolors);
-//
-//        return pvfb->pfbMemory;
-//    }
-//    else
-//        return NULL;
-}
-
 //static void
 //vfbWriteXWDFileHeader(ScreenPtr pScreen)
 //{
@@ -946,7 +896,10 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
         pvfb->paddedWidth = pvfb->paddedBytesWidth / (pvfb->bitsPerPixel / 8);
     else
         pvfb->paddedWidth = pvfb->paddedBytesWidth * 8;
-    pbits = vfbAllocateFramebufferMemory(pvfb);
+
+    pvfb->sizeInBytes = pvfb->paddedBytesWidth * pvfb->height;
+    pbits = malloc(pvfb->sizeInBytes);
+
     if (!pbits)
         return FALSE;
 
