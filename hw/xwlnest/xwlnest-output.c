@@ -938,6 +938,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     char *pbits;
     WindowPtr window;
 
+    LogWrite(0, "vfbScreenInit (%d)\n", pScreen->myNum);
+
     if (dpix == 0)
         dpix = 100;
 
