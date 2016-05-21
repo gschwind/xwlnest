@@ -170,5 +170,8 @@ struct xwl_seat {
 extern int vfbNumScreens;
 extern vfbScreenInfo *vfbScreens;
 
+void
+xwl_seat_set_cursor(struct xwl_seat *xwl_seat);
+
 
 #endif /* HW_XWLNEST_XWLNEST_SCREEN_H_ */

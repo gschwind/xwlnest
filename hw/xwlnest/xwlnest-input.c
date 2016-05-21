@@ -272,11 +272,11 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
      * of our surfaces might not have been shown. In that case we'll
      * have a cursor surface frame callback pending which we need to
      * clear so that we can continue submitting new cursor frames. */
-//    if (xwl_seat->cursor_frame_cb) {
-//        wl_callback_destroy(xwl_seat->cursor_frame_cb);
-//        xwl_seat->cursor_frame_cb = NULL;
-//        xwl_seat_set_cursor(xwl_seat);
-//    }
+    if (xwl_seat->cursor_frame_cb) {
+        wl_callback_destroy(xwl_seat->cursor_frame_cb);
+        xwl_seat->cursor_frame_cb = NULL;
+        xwl_seat_set_cursor(xwl_seat);
+    }
 }
 
 static void
@@ -725,7 +725,7 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
                                 &pointer_listener, xwl_seat);
 
         if (xwl_seat->pointer == NULL) {
-            //xwl_seat_set_cursor(xwl_seat);
+            xwl_seat_set_cursor(xwl_seat);
             xwl_seat->pointer =
                 add_device(xwl_seat, "xwayland-pointer", xwl_pointer_proc);
             ActivateDevice(xwl_seat->pointer, TRUE);

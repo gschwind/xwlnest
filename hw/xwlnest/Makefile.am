@@ -9,6 +9,7 @@ AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
 SRCS =	InitOutput.c \
 	xwlnest-shm.c \
 	xwlnest-input.c \
+	xwlnest-cursor.c \
 	$(top_srcdir)/mi/miinitext.c
 
 Xwlnest_SOURCES = $(SRCS)
