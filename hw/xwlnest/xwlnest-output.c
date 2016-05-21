@@ -45,7 +45,6 @@ static vfbScreenInfo defaultScreenInfo = {
 typedef enum { NORMAL_MEMORY_FB } fbMemType;
 static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static char needswap = 0;
-static Bool Render = TRUE;
 
 #define swapcopy16(_dst, _src) \
     if (needswap) { CARD16 _s = _src; cpswaps(_s, _dst); } \
@@ -123,8 +122,6 @@ void
 ddxUseMsg(void)
 {
     ErrorF("-screen WxH            set screen's width and height\n");
-    ErrorF("+/-render		   turn on/off RENDER extension support"
-           "(default on)\n");
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
     ErrorF("-whitepixel n          pixel value for white\n");
@@ -193,19 +190,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
         lastScreen = screenNum;
         return 2;
-    }
-
-    if (strcmp(argv[i], "+render") == 0) {      /* +render */
-        Render = TRUE;
-        return 1;
-    }
-
-    if (strcmp(argv[i], "-render") == 0) {      /* -render */
-        Render = FALSE;
-#ifdef COMPOSITE
-        noCompositeExtension = TRUE;
-#endif
-        return 1;
     }
 
     if (strcmp(argv[i], "-blackpixel") == 0) {  /* -blackpixel n */
@@ -1013,11 +997,10 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     ret = fbScreenInit(pScreen, pbits, pvfb->width, pvfb->height,
                        dpix, dpiy, pvfb->paddedWidth, pvfb->bitsPerPixel);
-    if (ret && Render)
-        fbPictureInit(pScreen, 0, 0);
-
     if (!ret)
         return FALSE;
+
+    fbPictureInit(pScreen, 0, 0);
 
     if (!vfbRandRInit(pScreen))
        return FALSE;
