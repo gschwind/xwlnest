@@ -742,9 +742,6 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
 
 static void
 vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb) {
-    struct wl_buffer *buffer;
-    struct wl_region *region;
-
     struct xwl_seat *xwl_seat, *next_xwl_seat;
 
     xorg_list_for_each_entry_safe(xwl_seat, next_xwl_seat,
@@ -936,7 +933,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     int dpix = monitorResolution, dpiy = monitorResolution;
     int ret;
     char *pbits;
-    WindowPtr window;
 
     LogWrite(0, "vfbScreenInit (%d)\n", pScreen->myNum);
 
