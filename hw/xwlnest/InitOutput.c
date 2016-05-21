@@ -669,7 +669,6 @@ static void
 xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
 {
     RegionPtr region;
-    BoxPtr box;
     struct wl_buffer *buffer;
 
     LogWrite(0, "xwlnest::screen_post_damage\n");
@@ -685,27 +684,9 @@ xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
     if (pvfb->frame_callback)
         return;
 
-    {
-        GCPtr pGC = GetScratchGC(pvfb->output_pixmap->drawable.depth, pvfb->pScreen);
-        int bw = 0;
-        int x = bw;
-        int y = bw;
-        int w = pvfb->output_pixmap->drawable.width;
-        int h = pvfb->output_pixmap->drawable.height;
-
-        if (pGC) {
-            ChangeGCVal val;
-            val.val = IncludeInferiors;
-            ChangeGC(NullClient, pGC, GCSubwindowMode, &val);
-            ValidateGC(&pvfb->pixmap->pixmap->drawable, pGC);
-            (*pGC->ops->CopyArea) (&pvfb->output_pixmap->drawable,
-                                   &pvfb->pixmap->pixmap->drawable,
-                                   pGC, x, y, w, h, 0, 0);
-            FreeScratchGC(pGC);
-        }
-    }
-
     region = DamageRegion(pvfb->damage);
+    if(!region)
+        return;
 
     buffer = xwlnest_shm_pixmap_get_wl_buffer(pvfb->shm, pvfb->pixmap);
     if (buffer == NULL) {
@@ -713,11 +694,34 @@ xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
     }
 
     wl_surface_attach(pvfb->surface, buffer, 0, 0);
-    wl_surface_damage(pvfb->surface, 0, 0, pvfb->width, pvfb->height);
+    {
+        GCPtr pGC = GetScratchGC(pvfb->output_pixmap->drawable.depth, pvfb->pScreen);
+        if (pGC) {
+            BoxPtr pBox = RegionRects(region);
+            int nBox = RegionNumRects(region);
 
-    box = RegionExtents(region);
-    wl_surface_damage(pvfb->surface, box->x1, box->y1,
-                      box->x2 - box->x1, box->y2 - box->y1);
+            ChangeGCVal val;
+            val.val = IncludeInferiors;
+            ChangeGC(NullClient, pGC, GCSubwindowMode, &val);
+            ValidateGC(&pvfb->pixmap->pixmap->drawable, pGC);
+
+            while (nBox--) {
+                int x = pBox->x1;
+                int y = pBox->y1;
+                int w = pBox->x2 - pBox->x1;
+                int h = pBox->y2 - pBox->y1;
+
+                LogWrite(0, "damage %d %d %d %d\n", x, y, w, h);
+
+                wl_surface_damage(pvfb->surface, x, y, w, h);
+                (*pGC->ops->CopyArea)(&pvfb->output_pixmap->drawable,
+                        &pvfb->pixmap->pixmap->drawable, pGC, x, y, w, h, x, y);
+
+                pBox++;
+            }
+            FreeScratchGC(pGC);
+        }
+    }
 
     pvfb->frame_callback = wl_surface_frame(pvfb->surface);
     wl_callback_add_listener(pvfb->frame_callback, &frame_listener, pvfb);
