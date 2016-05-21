@@ -108,6 +108,7 @@ typedef struct {
     struct wl_compositor *compositor;
     struct wl_shm *shm;
     struct wl_shell *shell;
+    struct wl_callback *frame_callback;
 
 #ifdef HAVE_MMAP
     int mmap_fd;
@@ -878,6 +879,20 @@ vfbRandRInit(ScreenPtr pScreen)
     return TRUE;
 }
 
+static void
+frame_callback(void *data,
+               struct wl_callback *callback,
+               uint32_t time)
+{
+    vfbScreenInfoPtr pvfb = data;
+    LogWrite(0, "xwlnest::frame_callback(%p, %p, %u)\n", data, callback, time);
+    pvfb->frame_callback = NULL;
+}
+
+static const struct wl_callback_listener frame_listener = {
+    frame_callback
+};
+
 void
 vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
     struct wl_buffer *buffer;
@@ -921,9 +936,8 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
     wl_surface_attach(pvfb->surface, buffer, 0, 0);
     wl_surface_damage(pvfb->surface, 0, 0, pvfb->width, pvfb->height);
 
-    // TODO
-    //xwl_window->frame_callback = wl_surface_frame(xwl_window->surface);
-    //wl_callback_add_listener(xwl_window->frame_callback, &frame_listener, xwl_window);
+    pvfb->frame_callback = wl_surface_frame(pvfb->surface);
+    wl_callback_add_listener(pvfb->frame_callback, &frame_listener, pvfb);
 
     wl_surface_commit(pvfb->surface);
     wl_display_flush(pvfb->display);
