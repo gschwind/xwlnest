@@ -119,43 +119,43 @@ xwl_pointer_proc(DeviceIntPtr device, int what)
 #undef NAXES
 }
 
-//static void
-//xwl_keyboard_control(DeviceIntPtr device, KeybdCtrl *ctrl)
-//{
-//}
-//
-//static int
-//xwl_keyboard_proc(DeviceIntPtr device, int what)
-//{
-//    struct xwl_seat *xwl_seat = device->public.devicePrivate;
-//    int len;
-//
-//    switch (what) {
-//    case DEVICE_INIT:
-//        device->public.on = FALSE;
-//        if (xwl_seat->keymap)
-//            len = strnlen(xwl_seat->keymap, xwl_seat->keymap_size);
-//        else
-//            len = 0;
-//        if (!InitKeyboardDeviceStructFromString(device, xwl_seat->keymap,
-//                                                len,
-//                                                NULL, xwl_keyboard_control))
-//            return BadValue;
-//
-//        return Success;
-//    case DEVICE_ON:
-//        device->public.on = TRUE;
-//        return Success;
-//
-//    case DEVICE_OFF:
-//    case DEVICE_CLOSE:
-//        device->public.on = FALSE;
-//        return Success;
-//    }
-//
-//    return BadMatch;
-//}
-//
+static void
+xwl_keyboard_control(DeviceIntPtr device, KeybdCtrl *ctrl)
+{
+}
+
+static int
+xwl_keyboard_proc(DeviceIntPtr device, int what)
+{
+    struct xwl_seat *xwl_seat = device->public.devicePrivate;
+    int len;
+
+    switch (what) {
+    case DEVICE_INIT:
+        device->public.on = FALSE;
+        if (xwl_seat->keymap)
+            len = strnlen(xwl_seat->keymap, xwl_seat->keymap_size);
+        else
+            len = 0;
+        if (!InitKeyboardDeviceStructFromString(device, xwl_seat->keymap,
+                                                len,
+                                                NULL, xwl_keyboard_control))
+            return BadValue;
+
+        return Success;
+    case DEVICE_ON:
+        device->public.on = TRUE;
+        return Success;
+
+    case DEVICE_OFF:
+    case DEVICE_CLOSE:
+        device->public.on = FALSE;
+        return Success;
+    }
+
+    return BadMatch;
+}
+
 //static int
 //xwl_touch_proc(DeviceIntPtr device, int what)
 //{
@@ -382,189 +382,189 @@ static const struct wl_pointer_listener pointer_listener = {
     pointer_handle_axis,
 };
 
-//static void
-//keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32_t serial,
-//                    uint32_t time, uint32_t key, uint32_t state)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    uint32_t *k, *end;
-//
-//    xwl_seat->xwl_screen->serial = serial;
-//
-//    end = (uint32_t *) ((char *) xwl_seat->keys.data + xwl_seat->keys.size);
-//    for (k = xwl_seat->keys.data; k < end; k++) {
-//        if (*k == key)
-//            *k = *--end;
-//    }
-//    xwl_seat->keys.size = (char *) end - (char *) xwl_seat->keys.data;
-//    if (state) {
-//        k = wl_array_add(&xwl_seat->keys, sizeof *k);
-//        *k = key;
-//    }
-//
-//    QueueKeyboardEvents(xwl_seat->keyboard,
-//                        state ? KeyPress : KeyRelease, key + 8);
-//}
-//
-//static void
-//keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
-//                       uint32_t format, int fd, uint32_t size)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    DeviceIntPtr master;
-//    XkbDescPtr xkb;
-//    XkbChangesRec changes = { 0 };
-//
-//    if (xwl_seat->keymap)
-//        munmap(xwl_seat->keymap, xwl_seat->keymap_size);
-//
-//    xwl_seat->keymap_size = size;
-//    xwl_seat->keymap = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
-//    if (xwl_seat->keymap == MAP_FAILED) {
-//        xwl_seat->keymap_size = 0;
-//        xwl_seat->keymap = NULL;
-//        goto out;
-//    }
-//
-//    xkb = XkbCompileKeymapFromString(xwl_seat->keyboard, xwl_seat->keymap,
-//                                     strnlen(xwl_seat->keymap,
-//                                             xwl_seat->keymap_size));
-//    if (!xkb)
-//        goto out;
-//
-//    XkbUpdateDescActions(xkb, xkb->min_key_code, XkbNumKeys(xkb), &changes);
-//
-//    if (xwl_seat->keyboard->key)
-//        /* Keep the current controls */
-//        XkbCopyControls(xkb, xwl_seat->keyboard->key->xkbInfo->desc);
-//
-//    XkbDeviceApplyKeymap(xwl_seat->keyboard, xkb);
-//
-//    master = GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD);
-//    if (master && master->lastSlave == xwl_seat->keyboard)
-//        XkbDeviceApplyKeymap(master, xkb);
-//
-//    XkbFreeKeyboard(xkb, XkbAllComponentsMask, TRUE);
-//
-// out:
-//    close(fd);
-//}
-//
-//static void
-//keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
-//                      uint32_t serial,
-//                      struct wl_surface *surface, struct wl_array *keys)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    uint32_t *k;
-//
-//    xwl_seat->xwl_screen->serial = serial;
-//    xwl_seat->keyboard_focus = surface;
-//
-//    wl_array_copy(&xwl_seat->keys, keys);
-//    wl_array_for_each(k, &xwl_seat->keys)
-//        QueueKeyboardEvents(xwl_seat->keyboard, KeymapNotify, *k + 8);
-//}
-//
-//static void
-//keyboard_handle_leave(void *data, struct wl_keyboard *keyboard,
-//                      uint32_t serial, struct wl_surface *surface)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    uint32_t *k;
-//
-//    xwl_seat->xwl_screen->serial = serial;
-//
-//    /* Unlike keymap_handle_enter above, this time we _do_ want to trigger
-//     * full release, as we don't know how long we'll be out of focus for.
-//     * Notify clients that the keys have been released, disable autorepeat,
-//     * etc. */
-//    wl_array_for_each(k, &xwl_seat->keys)
-//        QueueKeyboardEvents(xwl_seat->keyboard, KeyRelease, *k + 8);
-//
-//    xwl_seat->keyboard_focus = NULL;
-//}
-//
-//static void
-//keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
-//                          uint32_t serial, uint32_t mods_depressed,
-//                          uint32_t mods_latched, uint32_t mods_locked,
-//                          uint32_t group)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    DeviceIntPtr dev;
-//    XkbStateRec old_state, *new_state;
-//    xkbStateNotify sn;
-//    CARD16 changed;
-//
-//    for (dev = inputInfo.devices; dev; dev = dev->next) {
-//        if (dev != xwl_seat->keyboard &&
-//            dev != GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD))
-//            continue;
-//
-//        old_state = dev->key->xkbInfo->state;
-//        new_state = &dev->key->xkbInfo->state;
-//
+static void
+keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32_t serial,
+                    uint32_t time, uint32_t key, uint32_t state)
+{
+    struct xwl_seat *xwl_seat = data;
+    uint32_t *k, *end;
+
+    xwl_seat->xwl_screen->serial = serial;
+
+    end = (uint32_t *) ((char *) xwl_seat->keys.data + xwl_seat->keys.size);
+    for (k = xwl_seat->keys.data; k < end; k++) {
+        if (*k == key)
+            *k = *--end;
+    }
+    xwl_seat->keys.size = (char *) end - (char *) xwl_seat->keys.data;
+    if (state) {
+        k = wl_array_add(&xwl_seat->keys, sizeof *k);
+        *k = key;
+    }
+
+    QueueKeyboardEvents(xwl_seat->keyboard,
+                        state ? KeyPress : KeyRelease, key + 8);
+}
+
+static void
+keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
+                       uint32_t format, int fd, uint32_t size)
+{
+    struct xwl_seat *xwl_seat = data;
+    DeviceIntPtr master;
+    XkbDescPtr xkb;
+    XkbChangesRec changes = { 0 };
+
+    if (xwl_seat->keymap)
+        munmap(xwl_seat->keymap, xwl_seat->keymap_size);
+
+    xwl_seat->keymap_size = size;
+    xwl_seat->keymap = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+    if (xwl_seat->keymap == MAP_FAILED) {
+        xwl_seat->keymap_size = 0;
+        xwl_seat->keymap = NULL;
+        goto out;
+    }
+
+    xkb = XkbCompileKeymapFromString(xwl_seat->keyboard, xwl_seat->keymap,
+                                     strnlen(xwl_seat->keymap,
+                                             xwl_seat->keymap_size));
+    if (!xkb)
+        goto out;
+
+    XkbUpdateDescActions(xkb, xkb->min_key_code, XkbNumKeys(xkb), &changes);
+
+    if (xwl_seat->keyboard->key)
+        /* Keep the current controls */
+        XkbCopyControls(xkb, xwl_seat->keyboard->key->xkbInfo->desc);
+
+    XkbDeviceApplyKeymap(xwl_seat->keyboard, xkb);
+
+    master = GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD);
+    if (master && master->lastSlave == xwl_seat->keyboard)
+        XkbDeviceApplyKeymap(master, xkb);
+
+    XkbFreeKeyboard(xkb, XkbAllComponentsMask, TRUE);
+
+ out:
+    close(fd);
+}
+
+static void
+keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
+                      uint32_t serial,
+                      struct wl_surface *surface, struct wl_array *keys)
+{
+    struct xwl_seat *xwl_seat = data;
+    uint32_t *k;
+
+    xwl_seat->xwl_screen->serial = serial;
+    //xwl_seat->keyboard_focus = surface;
+
+    wl_array_copy(&xwl_seat->keys, keys);
+    wl_array_for_each(k, &xwl_seat->keys)
+        QueueKeyboardEvents(xwl_seat->keyboard, KeymapNotify, *k + 8);
+}
+
+static void
+keyboard_handle_leave(void *data, struct wl_keyboard *keyboard,
+                      uint32_t serial, struct wl_surface *surface)
+{
+    struct xwl_seat *xwl_seat = data;
+    uint32_t *k;
+
+    xwl_seat->xwl_screen->serial = serial;
+
+    /* Unlike keymap_handle_enter above, this time we _do_ want to trigger
+     * full release, as we don't know how long we'll be out of focus for.
+     * Notify clients that the keys have been released, disable autorepeat,
+     * etc. */
+    wl_array_for_each(k, &xwl_seat->keys)
+        QueueKeyboardEvents(xwl_seat->keyboard, KeyRelease, *k + 8);
+
+    //xwl_seat->keyboard_focus = NULL;
+}
+
+static void
+keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
+                          uint32_t serial, uint32_t mods_depressed,
+                          uint32_t mods_latched, uint32_t mods_locked,
+                          uint32_t group)
+{
+    struct xwl_seat *xwl_seat = data;
+    DeviceIntPtr dev;
+    XkbStateRec old_state, *new_state;
+    xkbStateNotify sn;
+    CARD16 changed;
+
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        if (dev != xwl_seat->keyboard &&
+            dev != GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD))
+            continue;
+
+        old_state = dev->key->xkbInfo->state;
+        new_state = &dev->key->xkbInfo->state;
+
 //        if (!xwl_seat->keyboard_focus) {
 //            new_state->locked_mods = mods_locked & XkbAllModifiersMask;
 //            XkbLatchModifiers(dev, XkbAllModifiersMask,
 //                              mods_latched & XkbAllModifiersMask);
 //        }
-//        new_state->locked_group = group & XkbAllGroupsMask;
-//
-//        XkbComputeDerivedState(dev->key->xkbInfo);
-//
-//        changed = XkbStateChangedFlags(&old_state, new_state);
-//        if (!changed)
-//            continue;
-//
-//        sn.keycode = 0;
-//        sn.eventType = 0;
-//        sn.requestMajor = XkbReqCode;
-//        sn.requestMinor = X_kbLatchLockState;   /* close enough */
-//        sn.changed = changed;
-//        XkbSendStateNotify(dev, &sn);
-//    }
-//}
-//
-//static void
-//keyboard_handle_repeat_info (void *data, struct wl_keyboard *keyboard,
-//                             int32_t rate, int32_t delay)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    DeviceIntPtr dev;
-//    XkbControlsPtr ctrl;
-//
-//    if (rate < 0 || delay < 0) {
-//	ErrorF("Wrong rate/delay: %d, %d\n", rate, delay);
-//	return;
-//    }
-//
-//    for (dev = inputInfo.devices; dev; dev = dev->next) {
-//        if (dev != xwl_seat->keyboard &&
-//            dev != GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD))
-//            continue;
-//
-//	if (rate != 0) {
-//            ctrl = dev->key->xkbInfo->desc->ctrls;
-//            ctrl->repeat_delay = delay;
-//            /* rate is number of keys per second */
-//            ctrl->repeat_interval = 1000 / rate;
-//
-//	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOn);
-//	} else
-//	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOff);
-//    }
-//}
-//
-//static const struct wl_keyboard_listener keyboard_listener = {
-//    keyboard_handle_keymap,
-//    keyboard_handle_enter,
-//    keyboard_handle_leave,
-//    keyboard_handle_key,
-//    keyboard_handle_modifiers,
-//    keyboard_handle_repeat_info,
-//};
+        new_state->locked_group = group & XkbAllGroupsMask;
+
+        XkbComputeDerivedState(dev->key->xkbInfo);
+
+        changed = XkbStateChangedFlags(&old_state, new_state);
+        if (!changed)
+            continue;
+
+        sn.keycode = 0;
+        sn.eventType = 0;
+        sn.requestMajor = XkbReqCode;
+        sn.requestMinor = X_kbLatchLockState;   /* close enough */
+        sn.changed = changed;
+        XkbSendStateNotify(dev, &sn);
+    }
+}
+
+static void
+keyboard_handle_repeat_info (void *data, struct wl_keyboard *keyboard,
+                             int32_t rate, int32_t delay)
+{
+    struct xwl_seat *xwl_seat = data;
+    DeviceIntPtr dev;
+    XkbControlsPtr ctrl;
+
+    if (rate < 0 || delay < 0) {
+	ErrorF("Wrong rate/delay: %d, %d\n", rate, delay);
+	return;
+    }
+
+    for (dev = inputInfo.devices; dev; dev = dev->next) {
+        if (dev != xwl_seat->keyboard &&
+            dev != GetMaster(xwl_seat->keyboard, MASTER_KEYBOARD))
+            continue;
+
+	if (rate != 0) {
+            ctrl = dev->key->xkbInfo->desc->ctrls;
+            ctrl->repeat_delay = delay;
+            /* rate is number of keys per second */
+            ctrl->repeat_interval = 1000 / rate;
+
+	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOn);
+	} else
+	    XkbSetRepeatKeys(dev, -1, AutoRepeatModeOff);
+    }
+}
+
+static const struct wl_keyboard_listener keyboard_listener = {
+    keyboard_handle_keymap,
+    keyboard_handle_enter,
+    keyboard_handle_leave,
+    keyboard_handle_key,
+    keyboard_handle_modifiers,
+    keyboard_handle_repeat_info,
+};
 //
 //static struct xwl_touch *
 //xwl_seat_lookup_touch(struct xwl_seat *xwl_seat, int32_t id)
@@ -739,25 +739,25 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
             DisableDevice(xwl_seat->pointer, TRUE);
     }
 
-//    if (caps & WL_SEAT_CAPABILITY_KEYBOARD && xwl_seat->wl_keyboard == NULL) {
-//        xwl_seat->wl_keyboard = wl_seat_get_keyboard(seat);
-//        wl_keyboard_add_listener(xwl_seat->wl_keyboard,
-//                                 &keyboard_listener, xwl_seat);
-//
-//        if (xwl_seat->keyboard == NULL) {
-//            xwl_seat->keyboard =
-//                add_device(xwl_seat, "xwayland-keyboard", xwl_keyboard_proc);
-//            ActivateDevice(xwl_seat->keyboard, TRUE);
-//        }
-//        EnableDevice(xwl_seat->keyboard, TRUE);
-//    } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && xwl_seat->wl_keyboard) {
-//        wl_keyboard_release(xwl_seat->wl_keyboard);
-//        xwl_seat->wl_keyboard = NULL;
-//
-//        if (xwl_seat->keyboard)
-//            DisableDevice(xwl_seat->keyboard, TRUE);
-//    }
-//
+    if (caps & WL_SEAT_CAPABILITY_KEYBOARD && xwl_seat->wl_keyboard == NULL) {
+        xwl_seat->wl_keyboard = wl_seat_get_keyboard(seat);
+        wl_keyboard_add_listener(xwl_seat->wl_keyboard,
+                                 &keyboard_listener, xwl_seat);
+
+        if (xwl_seat->keyboard == NULL) {
+            xwl_seat->keyboard =
+                add_device(xwl_seat, "xwayland-keyboard", xwl_keyboard_proc);
+            ActivateDevice(xwl_seat->keyboard, TRUE);
+        }
+        EnableDevice(xwl_seat->keyboard, TRUE);
+    } else if (!(caps & WL_SEAT_CAPABILITY_KEYBOARD) && xwl_seat->wl_keyboard) {
+        wl_keyboard_release(xwl_seat->wl_keyboard);
+        xwl_seat->wl_keyboard = NULL;
+
+        if (xwl_seat->keyboard)
+            DisableDevice(xwl_seat->keyboard, TRUE);
+    }
+
 //    if (caps & WL_SEAT_CAPABILITY_TOUCH && xwl_seat->wl_touch == NULL) {
 //        xwl_seat->wl_touch = wl_seat_get_touch(seat);
 //        wl_touch_add_listener(xwl_seat->wl_touch,
