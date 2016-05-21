@@ -710,11 +710,12 @@
 //
 //    return dev;
 //}
-//
-//static void
-//seat_handle_capabilities(void *data, struct wl_seat *seat,
-//                         enum wl_seat_capability caps)
-//{
+
+static void
+seat_handle_capabilities(void *data, struct wl_seat *seat,
+                         enum wl_seat_capability caps)
+{
+    LogWrite(0, "xwlnest::seat_handle_capabilities\n");
 //    struct xwl_seat *xwl_seat = data;
 //
 //    if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
@@ -776,45 +777,45 @@
 //    }
 //
 //    xwl_seat->xwl_screen->expecting_event--;
-//}
-//
-//static void
-//seat_handle_name(void *data, struct wl_seat *seat,
-//		 const char *name)
-//{
-//
-//}
-//
-//static const struct wl_seat_listener seat_listener = {
-//    seat_handle_capabilities,
-//    seat_handle_name
-//};
-//
-//static void
-//create_input_device(struct xwl_screen *xwl_screen, uint32_t id, uint32_t version)
-//{
-//    struct xwl_seat *xwl_seat;
-//
-//    xwl_seat = calloc(sizeof *xwl_seat, 1);
-//    if (xwl_seat == NULL) {
-//        ErrorF("create_input ENOMEM\n");
-//        return;
-//    }
-//
-//    xwl_seat->xwl_screen = xwl_screen;
-//    xorg_list_add(&xwl_seat->link, &xwl_screen->seat_list);
-//
-//    xwl_seat->seat =
-//        wl_registry_bind(xwl_screen->registry, id,
-//                         &wl_seat_interface, min(version, 4));
-//    xwl_seat->id = id;
-//
-//    xwl_seat->cursor = wl_compositor_create_surface(xwl_screen->compositor);
-//    wl_seat_add_listener(xwl_seat->seat, &seat_listener, xwl_seat);
-//    wl_array_init(&xwl_seat->keys);
-//
-//    xorg_list_init(&xwl_seat->touches);
-//}
+}
+
+static void
+seat_handle_name(void *data, struct wl_seat *seat,
+		 const char *name)
+{
+
+}
+
+static const struct wl_seat_listener seat_listener = {
+    seat_handle_capabilities,
+    seat_handle_name
+};
+
+static void
+create_input_device(vfbScreenInfoPtr pvfb, uint32_t id, uint32_t version)
+{
+    struct xwl_seat *xwl_seat;
+
+    xwl_seat = calloc(sizeof *xwl_seat, 1);
+    if (xwl_seat == NULL) {
+        ErrorF("create_input ENOMEM\n");
+        return;
+    }
+
+    xwl_seat->xwl_screen = pvfb;
+    xorg_list_add(&xwl_seat->link, &pvfb->seat_list);
+
+    xwl_seat->seat =
+        wl_registry_bind(pvfb->input_registry, id,
+                         &wl_seat_interface, min(version, 4));
+    xwl_seat->id = id;
+
+    xwl_seat->cursor = wl_compositor_create_surface(pvfb->compositor);
+    wl_seat_add_listener(xwl_seat->seat, &seat_listener, xwl_seat);
+    wl_array_init(&xwl_seat->keys);
+
+    xorg_list_init(&xwl_seat->touches);
+}
 //
 //void
 //xwl_seat_destroy(struct xwl_seat *xwl_seat)
@@ -841,12 +842,12 @@ input_handler(void *data, struct wl_registry *registry, uint32_t id,
 {
     LogWrite(0, "xwlnest::input_handler\n");
 
-//    struct xwl_screen *xwl_screen = data;
-//
-//    if (strcmp(interface, "wl_seat") == 0 && version >= 3) {
-//        create_input_device(xwl_screen, id, version);
-//        xwl_screen->expecting_event++;
-//    }
+    vfbScreenInfoPtr pvfb = data;
+
+    if (strcmp(interface, "wl_seat") == 0 && version >= 3) {
+        create_input_device(pvfb, id, version);
+        //pvfb->expecting_event++;
+    }
 }
 
 static void

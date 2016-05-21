@@ -116,6 +116,8 @@ typedef struct {
     struct wl_shell *shell;
     struct wl_callback *frame_callback;
 
+    struct xorg_list seat_list;
+
     DamagePtr damage;
 
 #ifdef HAVE_MMAP

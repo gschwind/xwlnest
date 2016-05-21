@@ -1184,6 +1184,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
 
+    xorg_list_init(&pvfb->seat_list);
+
     pvfb->display = wl_display_connect(NULL);
     if (pvfb->display == NULL) {
         ErrorF("could not connect to wayland server\n");
