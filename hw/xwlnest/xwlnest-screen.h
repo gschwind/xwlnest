@@ -87,9 +87,9 @@ typedef struct {
     int bitsPerPixel;
     int sizeInBytes;
     int ncolors;
-    char *pfbMemory;
-    XWDColor *pXWDCmap;
-    XWDFileHeader *pXWDHeader;
+    //char *pfbMemory;
+    //XWDColor *pXWDCmap;
+    //XWDFileHeader *pXWDHeader;
     Pixel blackPixel;
     Pixel whitePixel;
     unsigned int lineBias;

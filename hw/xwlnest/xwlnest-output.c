@@ -77,14 +77,14 @@ ddxGiveUp(enum ExitCode error)
 
     /* clean up the framebuffers */
 
-    switch (fbmemtype) {
-
-    case NORMAL_MEMORY_FB:
-        for (i = 0; i < vfbNumScreens; i++) {
-            free(vfbScreens[i].pXWDHeader);
-        }
-        break;
-    }
+//    switch (fbmemtype) {
+//
+//    case NORMAL_MEMORY_FB:
+//        for (i = 0; i < vfbNumScreens; i++) {
+//            free(vfbScreens[i].pXWDHeader);
+//        }
+//        break;
+//    }
 }
 
 void
@@ -302,50 +302,51 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
 static char *
 vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 {
-    if (pvfb->pfbMemory)
-        return pvfb->pfbMemory; /* already done */
+//    if (pvfb->pfbMemory)
+//        return pvfb->pfbMemory; /* already done */
 
     pvfb->sizeInBytes = pvfb->paddedBytesWidth * pvfb->height;
+    return malloc(pvfb->sizeInBytes);
 
-    /* Calculate how many entries in colormap.  This is rather bogus, because
-     * the visuals haven't even been set up yet, but we need to know because we
-     * have to allocate space in the file for the colormap.  The number 10
-     * below comes from the MAX_PSEUDO_DEPTH define in cfbcmap.c.
-     */
-
-    if (pvfb->depth <= 10) {    /* single index colormaps */
-        pvfb->ncolors = 1 << pvfb->depth;
-    }
-    else {                      /* decomposed colormaps */
-        int nplanes_per_color_component = pvfb->depth / 3;
-
-        if (pvfb->depth % 3)
-            nplanes_per_color_component++;
-        pvfb->ncolors = 1 << nplanes_per_color_component;
-    }
-
-    /* add extra bytes for XWDFileHeader, window name, and colormap */
-
-    pvfb->sizeInBytes += SIZEOF(XWDheader) + XWD_WINDOW_NAME_LEN +
-        pvfb->ncolors * SIZEOF(XWDColor);
-
-    pvfb->pXWDHeader = NULL;
-    switch (fbmemtype) {
-    case NORMAL_MEMORY_FB:
-        pvfb->pXWDHeader = (XWDFileHeader *) malloc(pvfb->sizeInBytes);
-        break;
-    }
-
-    if (pvfb->pXWDHeader) {
-        pvfb->pXWDCmap = (XWDColor *) ((char *) pvfb->pXWDHeader
-                                       + SIZEOF(XWDheader) +
-                                       XWD_WINDOW_NAME_LEN);
-        pvfb->pfbMemory = (char *) (pvfb->pXWDCmap + pvfb->ncolors);
-
-        return pvfb->pfbMemory;
-    }
-    else
-        return NULL;
+//    /* Calculate how many entries in colormap.  This is rather bogus, because
+//     * the visuals haven't even been set up yet, but we need to know because we
+//     * have to allocate space in the file for the colormap.  The number 10
+//     * below comes from the MAX_PSEUDO_DEPTH define in cfbcmap.c.
+//     */
+//
+//    if (pvfb->depth <= 10) {    /* single index colormaps */
+//        pvfb->ncolors = 1 << pvfb->depth;
+//    }
+//    else {                      /* decomposed colormaps */
+//        int nplanes_per_color_component = pvfb->depth / 3;
+//
+//        if (pvfb->depth % 3)
+//            nplanes_per_color_component++;
+//        pvfb->ncolors = 1 << nplanes_per_color_component;
+//    }
+//
+//    /* add extra bytes for XWDFileHeader, window name, and colormap */
+//
+//    pvfb->sizeInBytes += SIZEOF(XWDheader) + XWD_WINDOW_NAME_LEN +
+//        pvfb->ncolors * SIZEOF(XWDColor);
+//
+//    pvfb->pXWDHeader = NULL;
+//    switch (fbmemtype) {
+//    case NORMAL_MEMORY_FB:
+//        pvfb->pXWDHeader = (XWDFileHeader *) malloc(pvfb->sizeInBytes);
+//        break;
+//    }
+//
+//    if (pvfb->pXWDHeader) {
+//        pvfb->pXWDCmap = (XWDColor *) ((char *) pvfb->pXWDHeader
+//                                       + SIZEOF(XWDheader) +
+//                                       XWD_WINDOW_NAME_LEN);
+//        pvfb->pfbMemory = (char *) (pvfb->pXWDCmap + pvfb->ncolors);
+//
+//        return pvfb->pfbMemory;
+//    }
+//    else
+//        return NULL;
 }
 
 //static void
@@ -895,9 +896,9 @@ xwlnest_realize_window(WindowPtr window) {
 
         pvfb->output_pixmap = pvfb->pScreen->GetScreenPixmap(pvfb->pScreen);
 
-        (*pvfb->pScreen->ModifyPixmapHeader) (pvfb->output_pixmap, pvfb->width,
-                pvfb->height, pvfb->depth, BitsPerPixel(pvfb->depth),
-                pvfb->paddedBytesWidth, pvfb->pfbMemory);
+//        (*pvfb->pScreen->ModifyPixmapHeader) (pvfb->output_pixmap, pvfb->width,
+//                pvfb->height, pvfb->depth, BitsPerPixel(pvfb->depth),
+//                pvfb->paddedBytesWidth, pvfb->pfbMemory);
 
         vfbCreateOutputWindow(pvfb);
 
