@@ -71,7 +71,7 @@
 #include "xwlnest-shm.h"
 
 #define VFB_DEFAULT_WIDTH      1280
-#define VFB_DEFAULT_HEIGHT     1024
+#define VFB_DEFAULT_HEIGHT      720
 #define VFB_DEFAULT_DEPTH        24
 #define VFB_DEFAULT_WHITEPIXEL    1
 #define VFB_DEFAULT_BLACKPIXEL    0
