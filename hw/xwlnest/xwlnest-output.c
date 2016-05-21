@@ -235,6 +235,11 @@ vfbCloseScreen(ScreenPtr pScreen)
 
     wl_display_disconnect(pvfb->display);
 
+    if(pvfb->output_pixmap) {
+        free(pvfb->output_pixmap->devPrivate.ptr);
+        pvfb->output_pixmap = NULL;
+    }
+
     pScreen->CloseScreen = pvfb->closeScreen;
 
     /*
