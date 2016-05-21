@@ -31,8 +31,6 @@ from The Open Group.
 int vfbNumScreens = 0;
 vfbScreenInfo *vfbScreens = NULL;
 
-//static DevPrivateKeyRec vfb_root_window_private_key;
-
 static vfbScreenInfo defaultScreenInfo = {
     .width = VFB_DEFAULT_WIDTH,
     .height = VFB_DEFAULT_HEIGHT,
@@ -43,8 +41,6 @@ static vfbScreenInfo defaultScreenInfo = {
 };
 
 typedef enum { NORMAL_MEMORY_FB } fbMemType;
-//static fbMemType fbmemtype = NORMAL_MEMORY_FB;
-//static char needswap = 0;
 
 #define swapcopy16(_dst, _src) \
     if (needswap) { CARD16 _s = _src; cpswaps(_s, _dst); } \
@@ -73,18 +69,7 @@ vfbBitsPerPixel(int depth)
 void
 ddxGiveUp(enum ExitCode error)
 {
-//    int i;
-
-    /* clean up the framebuffers */
-
-//    switch (fbmemtype) {
-//
-//    case NORMAL_MEMORY_FB:
-//        for (i = 0; i < vfbNumScreens; i++) {
-//            free(vfbScreens[i].pXWDHeader);
-//        }
-//        break;
-//    }
+    // TODO
 }
 
 void
@@ -209,155 +194,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
     return 0;
 }
 
-//static void
-//vfbInstallColormap(ColormapPtr pmap)
-//{
-//    ColormapPtr oldpmap = GetInstalledmiColormap(pmap->pScreen);
-//
-//    if (pmap != oldpmap) {
-//        int entries;
-//        XWDFileHeader *pXWDHeader;
-//        VisualPtr pVisual;
-//        Pixel *ppix;
-//        xrgb *prgb;
-//        xColorItem *defs;
-//        int i;
-//
-//        miInstallColormap(pmap);
-//
-//        entries = pmap->pVisual->ColormapEntries;
-//        pXWDHeader = vfbScreens[pmap->pScreen->myNum].pXWDHeader;
-//        pVisual = pmap->pVisual;
-//
-//        swapcopy32(pXWDHeader->visual_class, pVisual->class);
-//        swapcopy32(pXWDHeader->red_mask, pVisual->redMask);
-//        swapcopy32(pXWDHeader->green_mask, pVisual->greenMask);
-//        swapcopy32(pXWDHeader->blue_mask, pVisual->blueMask);
-//        swapcopy32(pXWDHeader->bits_per_rgb, pVisual->bitsPerRGBValue);
-//        swapcopy32(pXWDHeader->colormap_entries, pVisual->ColormapEntries);
-//
-//        ppix = xallocarray(entries, sizeof(Pixel));
-//        prgb = xallocarray(entries, sizeof(xrgb));
-//        defs = xallocarray(entries, sizeof(xColorItem));
-//
-//        for (i = 0; i < entries; i++)
-//            ppix[i] = i;
-//        /* XXX truecolor */
-//        QueryColors(pmap, entries, ppix, prgb, serverClient);
-//
-//        for (i = 0; i < entries; i++) { /* convert xrgbs to xColorItems */
-//            defs[i].pixel = ppix[i] & 0xff;     /* change pixel to index */
-//            defs[i].red = prgb[i].red;
-//            defs[i].green = prgb[i].green;
-//            defs[i].blue = prgb[i].blue;
-//            defs[i].flags = DoRed | DoGreen | DoBlue;
-//        }
-//        (*pmap->pScreen->StoreColors) (pmap, entries, defs);
-//
-//        free(ppix);
-//        free(prgb);
-//        free(defs);
-//    }
-//}
-//
-//static void
-//vfbStoreColors(ColormapPtr pmap, int ndef, xColorItem * pdefs)
-//{
-//    XWDColor *pXWDCmap;
-//    int i;
-//
-//    if (pmap != GetInstalledmiColormap(pmap->pScreen)) {
-//        return;
-//    }
-//
-//    pXWDCmap = vfbScreens[pmap->pScreen->myNum].pXWDCmap;
-//
-//    if ((pmap->pVisual->class | DynamicClass) == DirectColor) {
-//        return;
-//    }
-//
-//    for (i = 0; i < ndef; i++) {
-//        if (pdefs[i].flags & DoRed) {
-//            swapcopy16(pXWDCmap[pdefs[i].pixel].red, pdefs[i].red);
-//        }
-//        if (pdefs[i].flags & DoGreen) {
-//            swapcopy16(pXWDCmap[pdefs[i].pixel].green, pdefs[i].green);
-//        }
-//        if (pdefs[i].flags & DoBlue) {
-//            swapcopy16(pXWDCmap[pdefs[i].pixel].blue, pdefs[i].blue);
-//        }
-//    }
-//}
-
 static Bool
 vfbSaveScreen(ScreenPtr pScreen, int on)
 {
     return TRUE;
 }
-
-//static void
-//vfbWriteXWDFileHeader(ScreenPtr pScreen)
-//{
-//    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-//    XWDFileHeader *pXWDHeader = pvfb->pXWDHeader;
-//    char hostname[XWD_WINDOW_NAME_LEN];
-//    unsigned long swaptest = 1;
-//    int i;
-//
-//    needswap = *(char *) &swaptest;
-//
-//    pXWDHeader->header_size =
-//        (char *) pvfb->pXWDCmap - (char *) pvfb->pXWDHeader;
-//    pXWDHeader->file_version = XWD_FILE_VERSION;
-//
-//    pXWDHeader->pixmap_format = ZPixmap;
-//    pXWDHeader->pixmap_depth = pvfb->depth;
-//    pXWDHeader->pixmap_height = pXWDHeader->window_height = pvfb->height;
-//    pXWDHeader->xoffset = 0;
-//    pXWDHeader->byte_order = IMAGE_BYTE_ORDER;
-//    pXWDHeader->bitmap_bit_order = BITMAP_BIT_ORDER;
-//#ifndef INTERNAL_VS_EXTERNAL_PADDING
-//    pXWDHeader->pixmap_width = pXWDHeader->window_width = pvfb->width;
-//    pXWDHeader->bitmap_unit = BITMAP_SCANLINE_UNIT;
-//    pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD;
-//#else
-//    pXWDHeader->pixmap_width = pXWDHeader->window_width = pvfb->paddedWidth;
-//    pXWDHeader->bitmap_unit = BITMAP_SCANLINE_UNIT_PROTO;
-//    pXWDHeader->bitmap_pad = BITMAP_SCANLINE_PAD_PROTO;
-//#endif
-//    pXWDHeader->bits_per_pixel = pvfb->bitsPerPixel;
-//    pXWDHeader->bytes_per_line = pvfb->paddedBytesWidth;
-//    pXWDHeader->ncolors = pvfb->ncolors;
-//
-//    /* visual related fields are written when colormap is installed */
-//
-//    pXWDHeader->window_x = pXWDHeader->window_y = 0;
-//    pXWDHeader->window_bdrwidth = 0;
-//
-//    /* write xwd "window" name: Xvfb hostname:server.screen */
-//
-//    if (-1 == gethostname(hostname, sizeof(hostname)))
-//        hostname[0] = 0;
-//    else
-//        hostname[XWD_WINDOW_NAME_LEN - 1] = 0;
-//    sprintf((char *) (pXWDHeader + 1), "Xvfb %s:%s.%d", hostname, display,
-//            pScreen->myNum);
-//
-//    /* write colormap pixel slot values */
-//
-//    for (i = 0; i < pvfb->ncolors; i++) {
-//        pvfb->pXWDCmap[i].pixel = i;
-//    }
-//
-//    /* byte swap to most significant byte first */
-//
-//    if (needswap) {
-//        SwapLongs((CARD32 *) pXWDHeader, SIZEOF(XWDheader) / 4);
-//        for (i = 0; i < pvfb->ncolors; i++) {
-//            swapl(&pvfb->pXWDCmap[i].pixel);
-//        }
-//    }
-//}
 
 static Bool
 vfbCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
@@ -726,33 +567,12 @@ registry_global(void *data, struct wl_registry *registry, uint32_t id,
         pvfb->shell =
             wl_registry_bind(registry, id, &wl_shell_interface, 1);
     }
-
-//    else if (strcmp(interface, "wl_output") == 0 && version >= 2) {
-//        if (xwl_output_create(xwl_screen, id))
-//            xwl_screen->expecting_event++;
-//    }
-//#ifdef GLAMOR_HAS_GBM
-//    else if (xwl_screen->glamor &&
-//             strcmp(interface, "wl_drm") == 0 && version >= 2) {
-//        xwl_screen_init_glamor(xwl_screen, id, version);
-//    }
-//#endif
 }
 
 static void
 global_remove(void *data, struct wl_registry *registry, uint32_t name)
 {
 	LogWrite(0, "xwlnest::global_remove\n");
-//    struct xwl_screen *xwl_screen = data;
-//    struct xwl_output *xwl_output, *tmp_xwl_output;
-//
-//    xorg_list_for_each_entry_safe(xwl_output, tmp_xwl_output,
-//                                  &xwl_screen->output_list, link) {
-//        if (xwl_output->server_output_id == name) {
-//            xwl_output_destroy(xwl_output);
-//            break;
-//        }
-//    }
 }
 
 static const struct wl_registry_listener registry_listener = {
@@ -827,9 +647,6 @@ xwlnest_realize_window(WindowPtr window) {
     pScreen->RealizeWindow = pvfb->RealizeWindow;
     ret = (*pScreen->RealizeWindow) (window);
 
-    //pvfb->RealizeWindow = pScreen->RealizeWindow;
-    //pScreen->RealizeWindow = xwlnest_realize_window;
-
     LogWrite(0, "xwlnest_realize_window(%p, %d)\n", window, window->drawable.id);
 
     /* The first window is the rot window. */
@@ -842,33 +659,12 @@ xwlnest_realize_window(WindowPtr window) {
 
         pvfb->output_pixmap = pvfb->pScreen->GetScreenPixmap(pvfb->pScreen);
 
-//        (*pvfb->pScreen->ModifyPixmapHeader) (pvfb->output_pixmap, pvfb->width,
-//                pvfb->height, pvfb->depth, BitsPerPixel(pvfb->depth),
-//                pvfb->paddedBytesWidth, pvfb->pfbMemory);
-
         vfbCreateOutputWindow(pvfb);
 
     }
 
     return ret;
 }
-
-
-//static Bool
-//xwlnest_unrealize_window(WindowPtr window) {
-//    ScreenPtr pScreen = window->drawable.pScreen;
-//    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-//    Bool ret;
-//
-//    pScreen->UnrealizeWindow = pvfb->UnrealizeWindow;
-//    ret = (*pScreen->UnrealizeWindow) (window);
-//    pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
-//    pScreen->UnrealizeWindow = xwlnest_unrealize_window;
-//
-//    LogWrite(0, "xwlnest_unrealize_window(%p, %d)\n", window, window->drawable.id);
-//
-//    return ret;
-//}
 
 static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
@@ -950,14 +746,9 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     if (!vfbRandRInit(pScreen))
        return FALSE;
 
-    //pScreen->InstallColormap = vfbInstallColormap;
-
     pScreen->SaveScreen = vfbSaveScreen;
-    //pScreen->StoreColors = vfbStoreColors;
 
     miDCInitialize(pScreen, &vfbPointerCursorFuncs);
-
-    //vfbWriteXWDFileHeader(pScreen);
 
     pScreen->blackPixel = pvfb->blackPixel;
     pScreen->whitePixel = pvfb->whitePixel;
@@ -970,9 +761,6 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     pvfb->RealizeWindow = pScreen->RealizeWindow;
     pScreen->RealizeWindow = xwlnest_realize_window;
-
-    //pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
-    //pScreen->UnrealizeWindow = xwlnest_unrealize_window;
 
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
@@ -1000,11 +788,9 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     SetNotifyFd(pvfb->wayland_fd, socket_handler, X_NOTIFY_READ, pvfb);
     RegisterBlockAndWakeupHandlers(block_handler, wakeup_handler, pvfb);
 
-    //dixSetPrivate(&pScreen->root->devPrivates, &vfb_root_window_private_key, pvfb);
-
     return ret;
 
-}                               /* end vfbScreenInit */
+}
 
 static const ExtensionModule vfbExtensions[] = {
 #ifdef GLXEXT
