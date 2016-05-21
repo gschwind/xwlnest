@@ -894,14 +894,17 @@ DDXRingBell(int volume, int pitch, int duration)
 void
 InitInput(int argc, char *argv[])
 {
-//    ScreenPtr pScreen = screenInfo.screens[0];
-//    struct xwl_screen *xwl_screen = xwl_screen_get(pScreen);
-//
+    vfbScreenInfoPtr pvfb;
+    int i;
+
     mieqInit();
-//
-//    xwl_screen->input_registry = wl_display_get_registry(xwl_screen->display);
-//    wl_registry_add_listener(xwl_screen->input_registry, &input_listener,
-//                             xwl_screen);
+
+    for(i = 0; i < vfbNumScreens; ++i) {
+        pvfb = &vfbScreens[i];
+        pvfb->input_registry = wl_display_get_registry(pvfb->display);
+        wl_registry_add_listener(pvfb->input_registry, &input_listener, pvfb);
+    }
+
 }
 
 void

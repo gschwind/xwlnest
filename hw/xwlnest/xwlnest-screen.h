@@ -101,6 +101,7 @@ typedef struct {
     int wayland_fd;
     struct wl_display *display;
     struct wl_registry *registry;
+    struct wl_registry *input_registry;
 
     struct xwl_pixmap *pixmap; // shared pixmap with wayland.
 
@@ -126,6 +127,32 @@ typedef struct {
     int shmid;
 #endif
 } vfbScreenInfo, *vfbScreenInfoPtr;
+
+struct xwl_seat {
+    DeviceIntPtr pointer;
+    DeviceIntPtr keyboard;
+    DeviceIntPtr touch;
+    vfbScreenInfoPtr xwl_screen;
+    struct wl_seat *seat;
+    struct wl_pointer *wl_pointer;
+    struct wl_keyboard *wl_keyboard;
+    struct wl_touch *wl_touch;
+    struct wl_array keys;
+    struct xwl_window *focus_window;
+    uint32_t id;
+    uint32_t pointer_enter_serial;
+    struct xorg_list link;
+    CursorPtr x_cursor;
+    struct wl_surface *cursor;
+    struct wl_callback *cursor_frame_cb;
+    Bool cursor_needs_update;
+
+    struct xorg_list touches;
+
+    size_t keymap_size;
+    char *keymap;
+    struct wl_surface *keyboard_focus;
+};
 
 extern int vfbNumScreens;
 extern vfbScreenInfo *vfbScreens;
