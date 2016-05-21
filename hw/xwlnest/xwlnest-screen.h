@@ -134,6 +134,13 @@ typedef struct {
 #endif
 } vfbScreenInfo, *vfbScreenInfoPtr;
 
+struct xwl_touch {
+    //struct xwl_window *window;
+    int32_t id;
+    int x, y;
+    struct xorg_list link_touch;
+};
+
 struct xwl_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
