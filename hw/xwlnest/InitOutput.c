@@ -733,6 +733,10 @@ vfbCloseScreen(ScreenPtr pScreen)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
 
+    RemoveNotifyFd(pvfb->wayland_fd);
+
+    wl_display_disconnect(pvfb->display);
+
     pScreen->CloseScreen = pvfb->closeScreen;
 
     /*
