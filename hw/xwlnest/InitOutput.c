@@ -69,6 +69,7 @@ from The Open Group.
 #include "randrstr.h"
 
 #include <wayland-client.h>
+#include "xwlnest-shm.h"
 
 #define VFB_DEFAULT_WIDTH      1280
 #define VFB_DEFAULT_HEIGHT     1024
@@ -98,6 +99,15 @@ typedef struct {
     int wayland_fd;
     struct wl_display *display;
     struct wl_registry *registry;
+
+    struct xwl_pixmap *pixmap; // shared pixmap with wayland.
+
+    /* output window */
+    struct wl_surface *surface;
+    struct wl_shell_surface *shell_surface;
+    struct wl_compositor *compositor;
+    struct wl_shm *shm;
+    struct wl_shell *shell;
 
 #ifdef HAVE_MMAP
     int mmap_fd;
@@ -868,24 +878,76 @@ vfbRandRInit(ScreenPtr pScreen)
     return TRUE;
 }
 
+void
+vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
+    struct wl_buffer *buffer;
+    struct wl_region *region;
+
+    pvfb->surface = wl_compositor_create_surface(pvfb->compositor);
+    if (pvfb->surface == NULL) {
+        ErrorF("wl_display_create_surface failed\n");
+    }
+
+    pvfb->shell_surface =
+        wl_shell_get_shell_surface(pvfb->shell, pvfb->surface);
+    if (pvfb->shell_surface == NULL) {
+        ErrorF("Failed creating shell surface\n");
+    }
+
+    //wl_shell_surface_add_listener(xwl_window->shell_surface,
+    //                              &shell_surface_listener, xwl_window);
+
+    wl_shell_surface_set_toplevel(pvfb->shell_surface);
+
+    region = wl_compositor_create_region(pvfb->compositor);
+    if (region == NULL) {
+        ErrorF("Failed creating region\n");
+    }
+
+    wl_region_add(region, 0, 0, pvfb->width, pvfb->height);
+    wl_surface_set_opaque_region(pvfb->surface, region);
+    wl_region_destroy(region);
+
+    pvfb->pixmap = xwlnest_shm_create_pixmap(pvfb->width, pvfb->height, pvfb->depth);
+    if(pvfb->pixmap == NULL) {
+        ErrorF("xwlnest_shm_create_pixmap failed\n");
+    }
+
+    buffer = xwlnest_shm_pixmap_get_wl_buffer(pvfb->shm, pvfb->pixmap);
+    if (buffer == NULL) {
+        ErrorF("xwlnest_shm_pixmap_get_wl_buffer failed\n");
+    }
+
+    wl_surface_attach(pvfb->surface, buffer, 0, 0);
+    wl_surface_damage(pvfb->surface, 0, 0, pvfb->width, pvfb->height);
+
+    // TODO
+    //xwl_window->frame_callback = wl_surface_frame(xwl_window->surface);
+    //wl_callback_add_listener(xwl_window->frame_callback, &frame_listener, xwl_window);
+
+    wl_surface_commit(pvfb->surface);
+    wl_display_flush(pvfb->display);
+}
+
 static void
 registry_global(void *data, struct wl_registry *registry, uint32_t id,
                 const char *interface, uint32_t version)
 {
-	LogWrite(0, "xwlnest::registry_global : %s (%d)\n", interface, version);
-//    struct xwl_screen *xwl_screen = data;
-//
-//    if (strcmp(interface, "wl_compositor") == 0) {
-//        xwl_screen->compositor =
-//            wl_registry_bind(registry, id, &wl_compositor_interface, 1);
-//    }
-//    else if (strcmp(interface, "wl_shm") == 0) {
-//        xwl_screen->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
-//    }
-//    else if (strcmp(interface, "wl_shell") == 0) {
-//        xwl_screen->shell =
-//            wl_registry_bind(registry, id, &wl_shell_interface, 1);
-//    }
+    vfbScreenInfoPtr pvfb = data;
+
+    LogWrite(0, "xwlnest::registry_global : %s (%d)\n", interface, version);
+
+    if (strcmp(interface, "wl_compositor") == 0) {
+        pvfb->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+    }
+    else if (strcmp(interface, "wl_shm") == 0) {
+        pvfb->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
+    }
+    else if (strcmp(interface, "wl_shell") == 0) {
+        pvfb->shell =
+            wl_registry_bind(registry, id, &wl_shell_interface, 1);
+    }
+
 //    else if (strcmp(interface, "wl_output") == 0 && version >= 2) {
 //        if (xwl_output_create(xwl_screen, id))
 //            xwl_screen->expecting_event++;
@@ -1079,6 +1141,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pvfb->wayland_fd = wl_display_get_fd(pvfb->display);
     SetNotifyFd(pvfb->wayland_fd, socket_handler, X_NOTIFY_READ, pvfb);
     RegisterBlockAndWakeupHandlers(block_handler, wakeup_handler, pvfb);
+
+    vfbCreateOutputWindow(pvfb);
 
     return ret;
 
