@@ -49,14 +49,13 @@ struct xwl_pixmap {
     int fd;
     void *data;
     size_t size;
-    int width;
-    int height;
-    int depth;
-    int stride;
+
+    /* this pixmap can be used to do standard Xorg draw */
+    PixmapPtr pixmap;
 };
 
 struct xwl_pixmap *
-xwlnest_shm_create_pixmap(int width, int height, int depth);
+xwlnest_shm_create_pixmap(ScreenPtr screen, int width, int height, int depth);
 
 struct wl_buffer *
 xwlnest_shm_pixmap_get_wl_buffer(struct wl_shm *shm, struct xwl_pixmap *xwl_pixmap);

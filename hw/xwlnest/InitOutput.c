@@ -673,8 +673,25 @@ xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
     if (pvfb->frame_callback)
         return;
 
-    /* TOTALY DURTY */
-    memcpy(pvfb->pixmap->data, pvfb->pfbMemory, pvfb->paddedBytesWidth * pvfb->height);
+    {
+        GCPtr pGC = GetScratchGC(pvfb->output_pixmap->drawable.depth, pvfb->pScreen);
+        int bw = 0;
+        int x = bw;
+        int y = bw;
+        int w = pvfb->output_pixmap->drawable.width;
+        int h = pvfb->output_pixmap->drawable.height;
+
+        if (pGC) {
+            ChangeGCVal val;
+            val.val = IncludeInferiors;
+            ChangeGC(NullClient, pGC, GCSubwindowMode, &val);
+            ValidateGC(&pvfb->pixmap->pixmap->drawable, pGC);
+            (*pGC->ops->CopyArea) (&pvfb->output_pixmap->drawable,
+                                   &pvfb->pixmap->pixmap->drawable,
+                                   pGC, x, y, w, h, 0, 0);
+            FreeScratchGC(pGC);
+        }
+    }
 
     region = DamageRegion(pvfb->damage);
 
@@ -732,7 +749,7 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
     wl_surface_set_opaque_region(pvfb->surface, region);
     wl_region_destroy(region);
 
-    pvfb->pixmap = xwlnest_shm_create_pixmap(pvfb->width, pvfb->height, pvfb->depth);
+    pvfb->pixmap = xwlnest_shm_create_pixmap(pvfb->pScreen, pvfb->width, pvfb->height, pvfb->depth);
     if(pvfb->pixmap == NULL) {
         ErrorF("xwlnest_shm_create_pixmap failed\n");
     }
@@ -883,6 +900,12 @@ xwlnest_realize_window(WindowPtr window) {
                 FALSE, pScreen, pvfb);
         DamageRegister(&window->drawable, pvfb->damage);
         DamageSetReportAfterOp(pvfb->damage, TRUE);
+
+        pvfb->output_pixmap = fbCreatePixmap(pvfb->pScreen, 0, 0, pvfb->depth, 0);
+
+        (*pvfb->pScreen->ModifyPixmapHeader) (pvfb->output_pixmap, pvfb->width,
+                pvfb->height, pvfb->depth, BitsPerPixel(pvfb->depth),
+                pvfb->paddedBytesWidth, pvfb->pfbMemory);
 
         vfbCreateOutputWindow(pvfb);
 

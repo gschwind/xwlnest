@@ -123,6 +123,7 @@ typedef struct {
     struct xorg_list seat_list;
 
     DamagePtr damage;
+    PixmapPtr output_pixmap;
 
 #ifdef HAVE_MMAP
     int mmap_fd;
