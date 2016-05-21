@@ -488,11 +488,6 @@ vfbCloseScreen(ScreenPtr pScreen)
         pvfb->damage = NULL;
     }
 
-    if(pvfb->output_pixmap) {
-        fbDestroyPixmap(pvfb->output_pixmap);
-        pvfb->output_pixmap = NULL;
-    }
-
     if(pvfb->pixmap) {
         vfbDestroyOutputWindow(pvfb);
     }
@@ -947,7 +942,7 @@ xwlnest_realize_window(WindowPtr window) {
         DamageRegister(&window->drawable, pvfb->damage);
         DamageSetReportAfterOp(pvfb->damage, TRUE);
 
-        pvfb->output_pixmap = fbCreatePixmap(pvfb->pScreen, 0, 0, pvfb->depth, 0);
+        pvfb->output_pixmap = pvfb->pScreen->GetScreenPixmap(pvfb->pScreen);
 
         (*pvfb->pScreen->ModifyPixmapHeader) (pvfb->output_pixmap, pvfb->width,
                 pvfb->height, pvfb->depth, BitsPerPixel(pvfb->depth),
