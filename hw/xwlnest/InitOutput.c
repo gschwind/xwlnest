@@ -58,6 +58,9 @@ static Bool Render = TRUE;
     else _dst = _src;
 
 static void
+vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb);
+
+static void
 vfbInitializePixmapDepths(void)
 {
     int i;
@@ -480,6 +483,20 @@ vfbCloseScreen(ScreenPtr pScreen)
 
     RemoveNotifyFd(pvfb->wayland_fd);
 
+    if(pvfb->damage) {
+        //DamageDestroy(pvfb->damage);
+        pvfb->damage = NULL;
+    }
+
+    if(pvfb->output_pixmap) {
+        fbDestroyPixmap(pvfb->output_pixmap);
+        pvfb->output_pixmap = NULL;
+    }
+
+    if(pvfb->pixmap) {
+        vfbDestroyOutputWindow(pvfb);
+    }
+
     wl_display_disconnect(pvfb->display);
 
     pScreen->CloseScreen = pvfb->closeScreen;
@@ -717,7 +734,7 @@ xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
 
 }
 
-void
+static void
 vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
     struct wl_buffer *buffer;
     struct wl_region *region;
@@ -769,6 +786,35 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
 
     pvfb->has_damage = 1;
     wl_display_flush(pvfb->display);
+}
+
+static void
+vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb) {
+    struct wl_buffer *buffer;
+    struct wl_region *region;
+
+    struct xwl_seat *xwl_seat, *next_xwl_seat;
+
+    xorg_list_for_each_entry_safe(xwl_seat, next_xwl_seat,
+                                  &pvfb->seat_list, link) {
+        xorg_list_del(&xwl_seat->link);
+        xwl_seat_destroy(xwl_seat);
+    }
+
+    wl_surface_attach(pvfb->surface, buffer, 0, 0);
+    wl_surface_commit(pvfb->surface);
+
+    wl_shell_surface_destroy(pvfb->shell_surface);
+    pvfb->shell_surface = NULL;
+
+    wl_surface_destroy(pvfb->surface);
+    pvfb->surface = NULL;
+
+    xwlnest_shm_destroy_pixmap(pvfb->pixmap);
+    pvfb->pixmap = NULL;
+
+    wl_display_flush(pvfb->display);
+
 }
 
 static void

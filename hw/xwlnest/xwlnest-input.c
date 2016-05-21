@@ -817,26 +817,26 @@ create_input_device(vfbScreenInfoPtr pvfb, uint32_t id, uint32_t version)
 
     xorg_list_init(&xwl_seat->touches);
 }
-//
-//void
-//xwl_seat_destroy(struct xwl_seat *xwl_seat)
-//{
-//    struct xwl_touch *xwl_touch, *next_xwl_touch;
-//
-//    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
-//                                  &xwl_seat->touches, link_touch) {
-//        xorg_list_del(&xwl_touch->link_touch);
-//        free(xwl_touch);
-//    }
-//
-//    wl_seat_destroy(xwl_seat->seat);
-//    wl_surface_destroy(xwl_seat->cursor);
-//    if (xwl_seat->cursor_frame_cb)
-//        wl_callback_destroy(xwl_seat->cursor_frame_cb);
-//    wl_array_release(&xwl_seat->keys);
-//    free(xwl_seat);
-//}
-//
+
+void
+xwl_seat_destroy(struct xwl_seat *xwl_seat)
+{
+    struct xwl_touch *xwl_touch, *next_xwl_touch;
+
+    xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
+                                  &xwl_seat->touches, link_touch) {
+        xorg_list_del(&xwl_touch->link_touch);
+        free(xwl_touch);
+    }
+
+    wl_seat_destroy(xwl_seat->seat);
+    wl_surface_destroy(xwl_seat->cursor);
+    if (xwl_seat->cursor_frame_cb)
+        wl_callback_destroy(xwl_seat->cursor_frame_cb);
+    wl_array_release(&xwl_seat->keys);
+    free(xwl_seat);
+}
+
 static void
 input_handler(void *data, struct wl_registry *registry, uint32_t id,
               const char *interface, uint32_t version)
