@@ -42,8 +42,6 @@ static vfbScreenInfo defaultScreenInfo = {
     .lineBias = VFB_DEFAULT_LINEBIAS,
 };
 
-static Bool vfbPixmapDepths[33];
-
 typedef enum { NORMAL_MEMORY_FB } fbMemType;
 static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static char needswap = 0;
@@ -59,16 +57,6 @@ static Bool Render = TRUE;
 
 static void
 vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb);
-
-static void
-vfbInitializePixmapDepths(void)
-{
-    int i;
-
-    vfbPixmapDepths[1] = TRUE;  /* always need bitmaps */
-    for (i = 2; i <= 32; i++)
-        vfbPixmapDepths[i] = FALSE;
-}
 
 static int
 vfbBitsPerPixel(int depth)
@@ -135,7 +123,6 @@ void
 ddxUseMsg(void)
 {
     ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
-    ErrorF("-pixdepths list-of-int support given pixmap depths\n");
     ErrorF("+/-render		   turn on/off RENDER extension support"
            "(default on)\n");
     ErrorF("-linebias n            adjust thin line pixelization\n");
@@ -155,7 +142,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
     vfbScreenInfo *currentScreen;
 
     if (firstTime) {
-        vfbInitializePixmapDepths();
         firstTime = FALSE;
     }
 
@@ -207,23 +193,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
 
         lastScreen = screenNum;
         return 2;
-    }
-
-    if (strcmp(argv[i], "-pixdepths") == 0) {   /* -pixdepths list-of-depth */
-        int depth, ret = 1;
-
-        CHECK_FOR_REQUIRED_ARGUMENTS(1);
-        while ((++i < argc) && (depth = atoi(argv[i])) != 0) {
-            if (depth < 0 || depth > 32) {
-                ErrorF("Invalid pixmap depth %d\n", depth);
-                UseMsg();
-                FatalError("Invalid pixmap depth %d passed to -pixdepths\n",
-                           depth);
-            }
-            vfbPixmapDepths[depth] = TRUE;
-            ret++;
-        }
-        return ret;
     }
 
     if (strcmp(argv[i], "+render") == 0) {      /* +render */
@@ -1125,51 +1094,23 @@ void
 InitOutput(ScreenInfo * screen_info, int argc, char **argv)
 {
     int i;
-    int NumFormats = 0;
+    int depths[] = { 1, 4, 8, 15, 16, 24, 32 };
+    int bpp[] =    { 1, 8, 8, 16, 16, 32, 32 };
 
     if (serverGeneration == 1)
         vfbExtensionInit();
 
-    /* initialize pixmap formats */
-
-    /* must have a pixmap depth to match every screen depth */
-    for (i = 0; i < vfbNumScreens; i++) {
-        vfbPixmapDepths[vfbScreens[i].depth] = TRUE;
-    }
-
-    /* RENDER needs a good set of pixmaps. */
-    if (Render) {
-        vfbPixmapDepths[1] = TRUE;
-        vfbPixmapDepths[4] = TRUE;
-        vfbPixmapDepths[8] = TRUE;
-#if 0
-        vfbPixmapDepths[12] = TRUE;
-#endif
-/*	vfbPixmapDepths[15] = TRUE; */
-        vfbPixmapDepths[16] = TRUE;
-        vfbPixmapDepths[24] = TRUE;
-#if 0
-        vfbPixmapDepths[30] = TRUE;
-#endif
-        vfbPixmapDepths[32] = TRUE;
-    }
-
-    for (i = 1; i <= 32; i++) {
-        if (vfbPixmapDepths[i]) {
-            if (NumFormats >= MAXFORMATS)
-                FatalError("MAXFORMATS is too small for this server\n");
-            screen_info->formats[NumFormats].depth = i;
-            screen_info->formats[NumFormats].bitsPerPixel = vfbBitsPerPixel(i);
-            screen_info->formats[NumFormats].scanlinePad = BITMAP_SCANLINE_PAD;
-            NumFormats++;
-        }
+    for (i = 0; i < ARRAY_SIZE(depths); i++) {
+        screen_info->formats[i].depth = depths[i];
+        screen_info->formats[i].bitsPerPixel = bpp[i];
+        screen_info->formats[i].scanlinePad = BITMAP_SCANLINE_PAD;
     }
 
     screen_info->imageByteOrder = IMAGE_BYTE_ORDER;
     screen_info->bitmapScanlineUnit = BITMAP_SCANLINE_UNIT;
     screen_info->bitmapScanlinePad = BITMAP_SCANLINE_PAD;
     screen_info->bitmapBitOrder = BITMAP_BIT_ORDER;
-    screen_info->numPixmapFormats = NumFormats;
+    screen_info->numPixmapFormats = ARRAY_SIZE(depths);
 
     /* initialize screens */
 
