@@ -41,84 +41,84 @@
         (miPointerPtr)dixLookupPrivate(&(dev)->devPrivates, miPointerPrivKey): \
         (miPointerPtr)dixLookupPrivate(&(GetMaster(dev, MASTER_POINTER))->devPrivates, miPointerPrivKey))
 
-//static void
-//xwl_pointer_control(DeviceIntPtr device, PtrCtrl *ctrl)
-//{
-//    /* Nothing to do, dix handles all settings */
-//}
-//
-//static int
-//xwl_pointer_proc(DeviceIntPtr device, int what)
-//{
-//#define NBUTTONS 10
-//#define NAXES 4
-//    BYTE map[NBUTTONS + 1];
-//    int i = 0;
-//    Atom btn_labels[NBUTTONS] = { 0 };
-//    Atom axes_labels[NAXES] = { 0 };
-//
-//    switch (what) {
-//    case DEVICE_INIT:
-//        device->public.on = FALSE;
-//
-//        for (i = 1; i <= NBUTTONS; i++)
-//            map[i] = i;
-//
-//        btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
-//        btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
-//        btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
-//        btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
-//        btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
-//        btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
-//        btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
-//        /* don't know about the rest */
-//
-//        axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
-//        axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
-//        axes_labels[2] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_HWHEEL);
-//        axes_labels[3] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_WHEEL);
-//
-//        if (!InitValuatorClassDeviceStruct(device, NAXES, btn_labels,
-//                                           GetMotionHistorySize(), Absolute))
-//            return BadValue;
-//
-//        /* Valuators */
-//        InitValuatorAxisStruct(device, 0, axes_labels[0],
-//                               0, 0xFFFF, 10000, 0, 10000, Absolute);
-//        InitValuatorAxisStruct(device, 1, axes_labels[1],
-//                               0, 0xFFFF, 10000, 0, 10000, Absolute);
-//        InitValuatorAxisStruct(device, 2, axes_labels[2],
-//                               NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Relative);
-//        InitValuatorAxisStruct(device, 3, axes_labels[3],
-//                               NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Relative);
-//
-//        SetScrollValuator(device, 2, SCROLL_TYPE_HORIZONTAL, 1.0, SCROLL_FLAG_NONE);
-//        SetScrollValuator(device, 3, SCROLL_TYPE_VERTICAL, 1.0, SCROLL_FLAG_PREFERRED);
-//
-//        if (!InitPtrFeedbackClassDeviceStruct(device, xwl_pointer_control))
-//            return BadValue;
-//
-//        if (!InitButtonClassDeviceStruct(device, 3, btn_labels, map))
-//            return BadValue;
-//
-//        return Success;
-//
-//    case DEVICE_ON:
-//        device->public.on = TRUE;
-//        return Success;
-//
-//    case DEVICE_OFF:
-//    case DEVICE_CLOSE:
-//        device->public.on = FALSE;
-//        return Success;
-//    }
-//
-//    return BadMatch;
-//
-//#undef NBUTTONS
-//#undef NAXES
-//}
-//
+static void
+xwl_pointer_control(DeviceIntPtr device, PtrCtrl *ctrl)
+{
+    /* Nothing to do, dix handles all settings */
+}
+
+static int
+xwl_pointer_proc(DeviceIntPtr device, int what)
+{
+#define NBUTTONS 10
+#define NAXES 4
+    BYTE map[NBUTTONS + 1];
+    int i = 0;
+    Atom btn_labels[NBUTTONS] = { 0 };
+    Atom axes_labels[NAXES] = { 0 };
+
+    switch (what) {
+    case DEVICE_INIT:
+        device->public.on = FALSE;
+
+        for (i = 1; i <= NBUTTONS; i++)
+            map[i] = i;
+
+        btn_labels[0] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_LEFT);
+        btn_labels[1] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_MIDDLE);
+        btn_labels[2] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_RIGHT);
+        btn_labels[3] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_UP);
+        btn_labels[4] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_WHEEL_DOWN);
+        btn_labels[5] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_LEFT);
+        btn_labels[6] = XIGetKnownProperty(BTN_LABEL_PROP_BTN_HWHEEL_RIGHT);
+        /* don't know about the rest */
+
+        axes_labels[0] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_X);
+        axes_labels[1] = XIGetKnownProperty(AXIS_LABEL_PROP_ABS_Y);
+        axes_labels[2] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_HWHEEL);
+        axes_labels[3] = XIGetKnownProperty(AXIS_LABEL_PROP_REL_WHEEL);
+
+        if (!InitValuatorClassDeviceStruct(device, NAXES, btn_labels,
+                                           GetMotionHistorySize(), Absolute))
+            return BadValue;
+
+        /* Valuators */
+        InitValuatorAxisStruct(device, 0, axes_labels[0],
+                               0, 0xFFFF, 10000, 0, 10000, Absolute);
+        InitValuatorAxisStruct(device, 1, axes_labels[1],
+                               0, 0xFFFF, 10000, 0, 10000, Absolute);
+        InitValuatorAxisStruct(device, 2, axes_labels[2],
+                               NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Relative);
+        InitValuatorAxisStruct(device, 3, axes_labels[3],
+                               NO_AXIS_LIMITS, NO_AXIS_LIMITS, 0, 0, 0, Relative);
+
+        SetScrollValuator(device, 2, SCROLL_TYPE_HORIZONTAL, 1.0, SCROLL_FLAG_NONE);
+        SetScrollValuator(device, 3, SCROLL_TYPE_VERTICAL, 1.0, SCROLL_FLAG_PREFERRED);
+
+        if (!InitPtrFeedbackClassDeviceStruct(device, xwl_pointer_control))
+            return BadValue;
+
+        if (!InitButtonClassDeviceStruct(device, 3, btn_labels, map))
+            return BadValue;
+
+        return Success;
+
+    case DEVICE_ON:
+        device->public.on = TRUE;
+        return Success;
+
+    case DEVICE_OFF:
+    case DEVICE_CLOSE:
+        device->public.on = FALSE;
+        return Success;
+    }
+
+    return BadMatch;
+
+#undef NBUTTONS
+#undef NAXES
+}
+
 //static void
 //xwl_keyboard_control(DeviceIntPtr device, KeybdCtrl *ctrl)
 //{
@@ -210,177 +210,178 @@
 //#undef NBUTTONS
 //#undef NTOUCHPOINTS
 //}
-//
-//static void
-//pointer_handle_enter(void *data, struct wl_pointer *pointer,
-//                     uint32_t serial, struct wl_surface *surface,
-//                     wl_fixed_t sx_w, wl_fixed_t sy_w)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    DeviceIntPtr dev = xwl_seat->pointer;
-//    DeviceIntPtr master;
-//    miPointerPtr mipointer;
-//    int i;
-//    int sx = wl_fixed_to_int(sx_w);
-//    int sy = wl_fixed_to_int(sy_w);
-//    ScreenPtr pScreen = xwl_seat->xwl_screen->screen;
-//    ValuatorMask mask;
-//
-//    /* There's a race here where if we create and then immediately
-//     * destroy a surface, we might end up in a state where the Wayland
-//     * compositor sends us an event for a surface that doesn't exist.
-//     *
-//     * Don't process enter events in this case.
-//     */
-//    if (surface == NULL)
-//        return;
-//
-//    xwl_seat->xwl_screen->serial = serial;
-//    xwl_seat->pointer_enter_serial = serial;
-//
-//    xwl_seat->focus_window = wl_surface_get_user_data(surface);
-//
-//    master = GetMaster(dev, POINTER_OR_FLOAT);
-//    (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
-//
-//    /* X is very likely to have the wrong idea of what the actual cursor
-//     * sprite is, so in order to force updating the cursor lets set the
-//     * current sprite to some invalid cursor behind its back so that it
-//     * always will think it changed to the not invalid cursor.
-//     */
-//    mipointer = MIPOINTER(master);
-//    mipointer->pSpriteCursor = (CursorPtr) 1;
-//
-//    CheckMotion(NULL, master);
-//
-//    /* Ideally, X clients shouldn't see these button releases.  When
-//     * the pointer leaves a window with buttons down, it means that
-//     * the wayland compositor has grabbed the pointer.  The button
-//     * release event is consumed by whatever grab in the compositor
-//     * and won't be sent to clients (the X server is a client).
-//     * However, we need to reset X's idea of which buttons are up and
-//     * down, and they're all up (by definition) when the pointer
-//     * enters a window.  We should figure out a way to swallow these
-//     * events, perhaps using an X grab whenever the pointer is not in
-//     * any X window, but for now just send the events. */
-//    valuator_mask_zero(&mask);
-//    for (i = 0; i < dev->button->numButtons; i++)
-//        if (BitIsOn(dev->button->down, i))
-//            QueuePointerEvents(dev, ButtonRelease, i, 0, &mask);
-//
-//    /* The last cursor frame we commited before the pointer left one
-//     * of our surfaces might not have been shown. In that case we'll
-//     * have a cursor surface frame callback pending which we need to
-//     * clear so that we can continue submitting new cursor frames. */
+
+static void
+pointer_handle_enter(void *data, struct wl_pointer *pointer,
+                     uint32_t serial, struct wl_surface *surface,
+                     wl_fixed_t sx_w, wl_fixed_t sy_w)
+{
+    struct xwl_seat *xwl_seat = data;
+    DeviceIntPtr dev = xwl_seat->pointer;
+    DeviceIntPtr master;
+    miPointerPtr mipointer;
+    int i;
+    int sx = wl_fixed_to_int(sx_w);
+    int sy = wl_fixed_to_int(sy_w);
+    ScreenPtr pScreen = xwl_seat->xwl_screen->pScreen;
+    ValuatorMask mask;
+
+    /* There's a race here where if we create and then immediately
+     * destroy a surface, we might end up in a state where the Wayland
+     * compositor sends us an event for a surface that doesn't exist.
+     *
+     * Don't process enter events in this case.
+     */
+    if (surface == NULL)
+        return;
+
+    xwl_seat->xwl_screen->serial = serial;
+    xwl_seat->pointer_enter_serial = serial;
+
+    //xwl_seat->focus_window = wl_surface_get_user_data(surface);
+
+    master = GetMaster(dev, POINTER_OR_FLOAT);
+    (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
+
+    /* X is very likely to have the wrong idea of what the actual cursor
+     * sprite is, so in order to force updating the cursor lets set the
+     * current sprite to some invalid cursor behind its back so that it
+     * always will think it changed to the not invalid cursor.
+     */
+    mipointer = MIPOINTER(master);
+    mipointer->pSpriteCursor = (CursorPtr) 1;
+
+    CheckMotion(NULL, master);
+
+    /* Ideally, X clients shouldn't see these button releases.  When
+     * the pointer leaves a window with buttons down, it means that
+     * the wayland compositor has grabbed the pointer.  The button
+     * release event is consumed by whatever grab in the compositor
+     * and won't be sent to clients (the X server is a client).
+     * However, we need to reset X's idea of which buttons are up and
+     * down, and they're all up (by definition) when the pointer
+     * enters a window.  We should figure out a way to swallow these
+     * events, perhaps using an X grab whenever the pointer is not in
+     * any X window, but for now just send the events. */
+    valuator_mask_zero(&mask);
+    for (i = 0; i < dev->button->numButtons; i++)
+        if (BitIsOn(dev->button->down, i))
+            QueuePointerEvents(dev, ButtonRelease, i, 0, &mask);
+
+    /* The last cursor frame we commited before the pointer left one
+     * of our surfaces might not have been shown. In that case we'll
+     * have a cursor surface frame callback pending which we need to
+     * clear so that we can continue submitting new cursor frames. */
 //    if (xwl_seat->cursor_frame_cb) {
 //        wl_callback_destroy(xwl_seat->cursor_frame_cb);
 //        xwl_seat->cursor_frame_cb = NULL;
 //        xwl_seat_set_cursor(xwl_seat);
 //    }
-//}
-//
-//static void
-//pointer_handle_leave(void *data, struct wl_pointer *pointer,
-//                     uint32_t serial, struct wl_surface *surface)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    DeviceIntPtr dev = xwl_seat->pointer;
-//
-//    xwl_seat->xwl_screen->serial = serial;
-//
-//    xwl_seat->focus_window = NULL;
-//    CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
-//}
-//
-//static void
-//pointer_handle_motion(void *data, struct wl_pointer *pointer,
-//                      uint32_t time, wl_fixed_t sx_w, wl_fixed_t sy_w)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    int32_t dx, dy;
-//    int sx = wl_fixed_to_int(sx_w);
-//    int sy = wl_fixed_to_int(sy_w);
-//    ValuatorMask mask;
-//
+}
+
+static void
+pointer_handle_leave(void *data, struct wl_pointer *pointer,
+                     uint32_t serial, struct wl_surface *surface)
+{
+    struct xwl_seat *xwl_seat = data;
+    DeviceIntPtr dev = xwl_seat->pointer;
+
+    xwl_seat->xwl_screen->serial = serial;
+
+    //xwl_seat->focus_window = NULL;
+    CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
+}
+
+static void
+pointer_handle_motion(void *data, struct wl_pointer *pointer,
+                      uint32_t time, wl_fixed_t sx_w, wl_fixed_t sy_w)
+{
+    struct xwl_seat *xwl_seat = data;
+    int32_t dx, dy;
+    int sx = wl_fixed_to_int(sx_w);
+    int sy = wl_fixed_to_int(sy_w);
+    ValuatorMask mask;
+
 //    if (!xwl_seat->focus_window)
 //        return;
-//
-//    dx = xwl_seat->focus_window->window->drawable.x;
-//    dy = xwl_seat->focus_window->window->drawable.y;
-//
-//    valuator_mask_zero(&mask);
-//    valuator_mask_set(&mask, 0, dx + sx);
-//    valuator_mask_set(&mask, 1, dy + sy);
-//
-//    QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0,
-//                       POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
-//}
-//
-//static void
-//pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
-//                      uint32_t time, uint32_t button, uint32_t state)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    int index;
-//    ValuatorMask mask;
-//
-//    xwl_seat->xwl_screen->serial = serial;
-//
-//    switch (button) {
-//    case BTN_LEFT:
-//        index = 1;
-//        break;
-//    case BTN_MIDDLE:
-//        index = 2;
-//        break;
-//    case BTN_RIGHT:
-//        index = 3;
-//        break;
-//    default:
-//        /* Skip indexes 4-7: they are used for vertical and horizontal scroll.
-//           The rest of the buttons go in order: BTN_SIDE becomes 8, etc. */
-//        index = 8 + button - BTN_SIDE;
-//        break;
-//    }
-//
-//    valuator_mask_zero(&mask);
-//    QueuePointerEvents(xwl_seat->pointer,
-//                       state ? ButtonPress : ButtonRelease, index, 0, &mask);
-//}
-//
-//static void
-//pointer_handle_axis(void *data, struct wl_pointer *pointer,
-//                    uint32_t time, uint32_t axis, wl_fixed_t value)
-//{
-//    struct xwl_seat *xwl_seat = data;
-//    int index;
-//    const int divisor = 10;
-//    ValuatorMask mask;
-//
-//    switch (axis) {
-//    case WL_POINTER_AXIS_VERTICAL_SCROLL:
-//        index = 3;
-//        break;
-//    case WL_POINTER_AXIS_HORIZONTAL_SCROLL:
-//        index = 2;
-//        break;
-//    default:
-//        return;
-//    }
-//
-//    valuator_mask_zero(&mask);
-//    valuator_mask_set_double(&mask, index, wl_fixed_to_double(value) / divisor);
-//    QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0, POINTER_RELATIVE, &mask);
-//}
-//
-//static const struct wl_pointer_listener pointer_listener = {
-//    pointer_handle_enter,
-//    pointer_handle_leave,
-//    pointer_handle_motion,
-//    pointer_handle_button,
-//    pointer_handle_axis,
-//};
-//
+
+    /* root window areat (0, 0) */
+    dx = 0; //xwl_seat->focus_window->window->drawable.x;
+    dy = 0; //xwl_seat->focus_window->window->drawable.y;
+
+    valuator_mask_zero(&mask);
+    valuator_mask_set(&mask, 0, dx + sx);
+    valuator_mask_set(&mask, 1, dy + sy);
+
+    QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0,
+                       POINTER_ABSOLUTE | POINTER_SCREEN, &mask);
+}
+
+static void
+pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
+                      uint32_t time, uint32_t button, uint32_t state)
+{
+    struct xwl_seat *xwl_seat = data;
+    int index;
+    ValuatorMask mask;
+
+    xwl_seat->xwl_screen->serial = serial;
+
+    switch (button) {
+    case BTN_LEFT:
+        index = 1;
+        break;
+    case BTN_MIDDLE:
+        index = 2;
+        break;
+    case BTN_RIGHT:
+        index = 3;
+        break;
+    default:
+        /* Skip indexes 4-7: they are used for vertical and horizontal scroll.
+           The rest of the buttons go in order: BTN_SIDE becomes 8, etc. */
+        index = 8 + button - BTN_SIDE;
+        break;
+    }
+
+    valuator_mask_zero(&mask);
+    QueuePointerEvents(xwl_seat->pointer,
+                       state ? ButtonPress : ButtonRelease, index, 0, &mask);
+}
+
+static void
+pointer_handle_axis(void *data, struct wl_pointer *pointer,
+                    uint32_t time, uint32_t axis, wl_fixed_t value)
+{
+    struct xwl_seat *xwl_seat = data;
+    int index;
+    const int divisor = 10;
+    ValuatorMask mask;
+
+    switch (axis) {
+    case WL_POINTER_AXIS_VERTICAL_SCROLL:
+        index = 3;
+        break;
+    case WL_POINTER_AXIS_HORIZONTAL_SCROLL:
+        index = 2;
+        break;
+    default:
+        return;
+    }
+
+    valuator_mask_zero(&mask);
+    valuator_mask_set_double(&mask, index, wl_fixed_to_double(value) / divisor);
+    QueuePointerEvents(xwl_seat->pointer, MotionNotify, 0, POINTER_RELATIVE, &mask);
+}
+
+static const struct wl_pointer_listener pointer_listener = {
+    pointer_handle_enter,
+    pointer_handle_leave,
+    pointer_handle_motion,
+    pointer_handle_button,
+    pointer_handle_axis,
+};
+
 //static void
 //keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32_t serial,
 //                    uint32_t time, uint32_t key, uint32_t state)
@@ -687,57 +688,57 @@
 //    touch_handle_frame,
 //    touch_handle_cancel
 //};
-//
-//static DeviceIntPtr
-//add_device(struct xwl_seat *xwl_seat,
-//           const char *driver, DeviceProc device_proc)
-//{
-//    DeviceIntPtr dev = NULL;
-//    static Atom type_atom;
-//    char name[32];
-//
-//    dev = AddInputDevice(serverClient, device_proc, TRUE);
-//    if (dev == NULL)
-//        return NULL;
-//
-//    if (type_atom == None)
-//        type_atom = MakeAtom(driver, strlen(driver), TRUE);
-//    snprintf(name, sizeof name, "%s:%d", driver, xwl_seat->id);
-//    AssignTypeAndName(dev, type_atom, name);
-//    dev->public.devicePrivate = xwl_seat;
-//    dev->type = SLAVE;
-//    dev->spriteInfo->spriteOwner = FALSE;
-//
-//    return dev;
-//}
+
+static DeviceIntPtr
+add_device(struct xwl_seat *xwl_seat,
+           const char *driver, DeviceProc device_proc)
+{
+    DeviceIntPtr dev = NULL;
+    static Atom type_atom;
+    char name[32];
+
+    dev = AddInputDevice(serverClient, device_proc, TRUE);
+    if (dev == NULL)
+        return NULL;
+
+    if (type_atom == None)
+        type_atom = MakeAtom(driver, strlen(driver), TRUE);
+    snprintf(name, sizeof name, "%s:%d", driver, xwl_seat->id);
+    AssignTypeAndName(dev, type_atom, name);
+    dev->public.devicePrivate = xwl_seat;
+    dev->type = SLAVE;
+    dev->spriteInfo->spriteOwner = FALSE;
+
+    return dev;
+}
 
 static void
 seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
     LogWrite(0, "xwlnest::seat_handle_capabilities\n");
-//    struct xwl_seat *xwl_seat = data;
-//
-//    if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
-//        xwl_seat->wl_pointer = wl_seat_get_pointer(seat);
-//        wl_pointer_add_listener(xwl_seat->wl_pointer,
-//                                &pointer_listener, xwl_seat);
-//
-//        if (xwl_seat->pointer == NULL) {
-//            xwl_seat_set_cursor(xwl_seat);
-//            xwl_seat->pointer =
-//                add_device(xwl_seat, "xwayland-pointer", xwl_pointer_proc);
-//            ActivateDevice(xwl_seat->pointer, TRUE);
-//        }
-//        EnableDevice(xwl_seat->pointer, TRUE);
-//    } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && xwl_seat->wl_pointer) {
-//        wl_pointer_release(xwl_seat->wl_pointer);
-//        xwl_seat->wl_pointer = NULL;
-//
-//        if (xwl_seat->pointer)
-//            DisableDevice(xwl_seat->pointer, TRUE);
-//    }
-//
+    struct xwl_seat *xwl_seat = data;
+
+    if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
+        xwl_seat->wl_pointer = wl_seat_get_pointer(seat);
+        wl_pointer_add_listener(xwl_seat->wl_pointer,
+                                &pointer_listener, xwl_seat);
+
+        if (xwl_seat->pointer == NULL) {
+            //xwl_seat_set_cursor(xwl_seat);
+            xwl_seat->pointer =
+                add_device(xwl_seat, "xwayland-pointer", xwl_pointer_proc);
+            ActivateDevice(xwl_seat->pointer, TRUE);
+        }
+        EnableDevice(xwl_seat->pointer, TRUE);
+    } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && xwl_seat->wl_pointer) {
+        wl_pointer_release(xwl_seat->wl_pointer);
+        xwl_seat->wl_pointer = NULL;
+
+        if (xwl_seat->pointer)
+            DisableDevice(xwl_seat->pointer, TRUE);
+    }
+
 //    if (caps & WL_SEAT_CAPABILITY_KEYBOARD && xwl_seat->wl_keyboard == NULL) {
 //        xwl_seat->wl_keyboard = wl_seat_get_keyboard(seat);
 //        wl_keyboard_add_listener(xwl_seat->wl_keyboard,

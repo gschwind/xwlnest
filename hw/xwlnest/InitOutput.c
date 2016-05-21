@@ -886,6 +886,8 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
         ErrorF("wl_display_create_surface failed\n");
     }
 
+    wl_surface_set_user_data(pvfb->surface, pvfb);
+
     pvfb->shell_surface =
         wl_shell_get_shell_surface(pvfb->shell, pvfb->surface);
     if (pvfb->shell_surface == NULL) {
@@ -1174,6 +1176,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     ret = fbCreateDefColormap(pScreen);
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
+
+    pvfb->pScreen = pScreen;
 
     pvfb->RealizeWindow = pScreen->RealizeWindow;
     pScreen->RealizeWindow = xwlnest_realize_window;

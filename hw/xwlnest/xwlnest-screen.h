@@ -94,6 +94,8 @@ typedef struct {
     Pixel whitePixel;
     unsigned int lineBias;
 
+    ScreenPtr pScreen;
+
     RealizeWindowProcPtr RealizeWindow;
     UnrealizeWindowProcPtr UnrealizeWindow;
     CloseScreenProcPtr closeScreen;
@@ -108,7 +110,7 @@ typedef struct {
     int prepare_read;
     int has_damage;
 
-    /* output window */
+    /* output window data */
     struct wl_surface *surface;
     struct wl_shell_surface *shell_surface;
     struct wl_compositor *compositor;
@@ -116,6 +118,8 @@ typedef struct {
     struct wl_shell *shell;
     struct wl_callback *frame_callback;
 
+    /* inputs related data */
+    uint32_t serial;
     struct xorg_list seat_list;
 
     DamagePtr damage;
@@ -140,7 +144,7 @@ struct xwl_seat {
     struct wl_keyboard *wl_keyboard;
     struct wl_touch *wl_touch;
     struct wl_array keys;
-    struct xwl_window *focus_window;
+    //struct xwl_window *focus_window;
     uint32_t id;
     uint32_t pointer_enter_serial;
     struct xorg_list link;
