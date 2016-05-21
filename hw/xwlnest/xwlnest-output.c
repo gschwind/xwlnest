@@ -610,7 +610,6 @@ frame_callback(void *data,
                uint32_t time)
 {
     vfbScreenInfoPtr pvfb = data;
-    LogWrite(0, "xwlnest::frame_callback(%p, %p, %u)\n", data, callback, time);
     pvfb->frame_callback = NULL;
 }
 
