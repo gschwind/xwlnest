@@ -44,7 +44,7 @@ static vfbScreenInfo defaultScreenInfo = {
 
 static Bool vfbPixmapDepths[33];
 
-typedef enum { NORMAL_MEMORY_FB, SHARED_MEMORY_FB } fbMemType;
+typedef enum { NORMAL_MEMORY_FB } fbMemType;
 static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static char needswap = 0;
 static Bool Render = TRUE;
@@ -88,20 +88,6 @@ ddxGiveUp(enum ExitCode error)
     /* clean up the framebuffers */
 
     switch (fbmemtype) {
-
-#ifdef HAS_SHM
-    case SHARED_MEMORY_FB:
-        for (i = 0; i < vfbNumScreens; i++) {
-            if (-1 == shmdt((char *) vfbScreens[i].pXWDHeader)) {
-                perror("shmdt");
-                ErrorF("shmdt failed, %s", strerror(errno));
-            }
-        }
-        break;
-#else                           /* HAS_SHM */
-    case SHARED_MEMORY_FB:
-        break;
-#endif                          /* HAS_SHM */
 
     case NORMAL_MEMORY_FB:
         for (i = 0; i < vfbNumScreens; i++) {
@@ -268,13 +254,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         return 2;
     }
 
-#ifdef HAS_SHM
-    if (strcmp(argv[i], "-shmem") == 0) {       /* -shmem */
-        fbmemtype = SHARED_MEMORY_FB;
-        return 1;
-    }
-#endif
-
     return 0;
 }
 
@@ -364,34 +343,6 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
     return TRUE;
 }
 
-#ifdef HAS_SHM
-static void
-vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
-{
-    /* create the shared memory segment */
-
-    pvfb->shmid = shmget(IPC_PRIVATE, pvfb->sizeInBytes, IPC_CREAT | 0777);
-    if (pvfb->shmid < 0) {
-        perror("shmget");
-        ErrorF("shmget %d bytes failed, %s", pvfb->sizeInBytes,
-               strerror(errno));
-        return;
-    }
-
-    /* try to attach it */
-
-    pvfb->pXWDHeader = (XWDFileHeader *) shmat(pvfb->shmid, 0, 0);
-    if (-1 == (long) pvfb->pXWDHeader) {
-        perror("shmat");
-        ErrorF("shmat failed, %s", strerror(errno));
-        pvfb->pXWDHeader = NULL;
-        return;
-    }
-
-    ErrorF("screen %d shmid %d\n", (int) (pvfb - vfbScreens), pvfb->shmid);
-}
-#endif                          /* HAS_SHM */
-
 static char *
 vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 {
@@ -424,16 +375,6 @@ vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 
     pvfb->pXWDHeader = NULL;
     switch (fbmemtype) {
-
-#ifdef HAS_SHM
-    case SHARED_MEMORY_FB:
-        vfbAllocateSharedMemoryFramebuffer(pvfb);
-        break;
-#else
-    case SHARED_MEMORY_FB:
-        break;
-#endif
-
     case NORMAL_MEMORY_FB:
         pvfb->pXWDHeader = (XWDFileHeader *) malloc(pvfb->sizeInBytes);
         break;
