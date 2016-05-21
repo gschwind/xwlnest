@@ -94,6 +94,9 @@ typedef struct {
     Pixel blackPixel;
     Pixel whitePixel;
     unsigned int lineBias;
+
+    RealizeWindowProcPtr RealizeWindow;
+    UnrealizeWindowProcPtr UnrealizeWindow;
     CloseScreenProcPtr closeScreen;
 
     int wayland_fd;
@@ -102,6 +105,9 @@ typedef struct {
 
     struct xwl_pixmap *pixmap; // shared pixmap with wayland.
 
+    int prepare_read;
+    int has_damage;
+
     /* output window */
     struct wl_surface *surface;
     struct wl_shell_surface *shell_surface;
@@ -109,6 +115,8 @@ typedef struct {
     struct wl_shm *shm;
     struct wl_shell *shell;
     struct wl_callback *frame_callback;
+
+    DamagePtr damage;
 
 #ifdef HAVE_MMAP
     int mmap_fd;
@@ -122,6 +130,8 @@ typedef struct {
 
 static int vfbNumScreens;
 static vfbScreenInfo *vfbScreens;
+
+//static DevPrivateKeyRec vfb_root_window_private_key;
 
 static vfbScreenInfo defaultScreenInfo = {
     .width = VFB_DEFAULT_WIDTH,
@@ -879,6 +889,7 @@ vfbRandRInit(ScreenPtr pScreen)
     return TRUE;
 }
 
+
 static void
 shell_surface_ping(void *data,
                    struct wl_shell_surface *shell_surface, uint32_t serial)
@@ -917,6 +928,53 @@ frame_callback(void *data,
 static const struct wl_callback_listener frame_listener = {
     frame_callback
 };
+
+static void
+xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
+{
+    RegionPtr region;
+    BoxPtr box;
+    struct wl_buffer *buffer;
+
+    LogWrite(0, "xwlnest::screen_post_damage\n");
+
+    if(!pvfb->damage)
+        return;
+
+    if(!pvfb->has_damage)
+        return;
+
+    /* If we're waiting on a frame callback from the server,
+     * don't attach a new buffer. */
+    if (pvfb->frame_callback)
+        return;
+
+    /* TOTALY DURTY */
+    memcpy(pvfb->pixmap->data, pvfb->pfbMemory, pvfb->paddedBytesWidth * pvfb->height);
+
+    region = DamageRegion(pvfb->damage);
+
+    buffer = xwlnest_shm_pixmap_get_wl_buffer(pvfb->shm, pvfb->pixmap);
+    if (buffer == NULL) {
+        ErrorF("xwlnest_shm_pixmap_get_wl_buffer failed\n");
+    }
+
+    wl_surface_attach(pvfb->surface, buffer, 0, 0);
+    wl_surface_damage(pvfb->surface, 0, 0, pvfb->width, pvfb->height);
+
+    box = RegionExtents(region);
+    wl_surface_damage(pvfb->surface, box->x1, box->y1,
+                      box->x2 - box->x1, box->y2 - box->y1);
+
+    pvfb->frame_callback = wl_surface_frame(pvfb->surface);
+    wl_callback_add_listener(pvfb->frame_callback, &frame_listener, pvfb);
+
+    wl_surface_commit(pvfb->surface);
+    DamageEmpty(pvfb->damage);
+    pvfb->has_damage = 0;
+
+
+}
 
 void
 vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
@@ -965,6 +1023,8 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
     wl_callback_add_listener(pvfb->frame_callback, &frame_listener, pvfb);
 
     wl_surface_commit(pvfb->surface);
+
+    pvfb->has_damage = 1;
     wl_display_flush(pvfb->display);
 }
 
@@ -1030,7 +1090,7 @@ socket_handler(int fd, int ready, void *data)
     if (ret == -1)
         FatalError("failed to dispatch Wayland events: %s\n", strerror(errno));
 
-    //pvfb->prepare_read = 0;
+    pvfb->prepare_read = 0;
 
     ret = wl_display_dispatch_pending(pvfb->display);
     if (ret == -1)
@@ -1045,26 +1105,82 @@ wakeup_handler(void *data, int err, void *pRead)
 static void
 block_handler(void *data, OSTimePtr pTimeout, void *pRead)
 {
-//    vfbScreenInfoPtr pvfb = data;
-//    int ret;
-//
-//    xwl_screen_post_damage(pvfb);
-//
-//    while (pvfb->prepare_read == 0 &&
-//           wl_display_prepare_read(pvfb->display) == -1) {
-//        ret = wl_display_dispatch_pending(pvfb->display);
-//        if (ret == -1)
-//            FatalError("failed to dispatch Wayland events: %s\n",
-//                       strerror(errno));
-//    }
-//
-//    pvfb->prepare_read = 1;
-//
-//    ret = wl_display_flush(pvfb->display);
-//    if (ret == -1)
-//        FatalError("failed to write to XWayland fd: %s\n", strerror(errno));
+    vfbScreenInfoPtr pvfb = data;
+    int ret;
+
+    xwlnest_screen_post_damage(pvfb);
+
+    while (pvfb->prepare_read == 0 &&
+           wl_display_prepare_read(pvfb->display) == -1) {
+        ret = wl_display_dispatch_pending(pvfb->display);
+        if (ret == -1)
+            FatalError("failed to dispatch Wayland events: %s\n",
+                       strerror(errno));
+    }
+
+    pvfb->prepare_read = 1;
+
+    ret = wl_display_flush(pvfb->display);
+    if (ret == -1)
+        FatalError("failed to write to XWayland fd: %s\n", strerror(errno));
 }
 
+static void
+damage_report(DamagePtr pDamage, RegionPtr pRegion, void *data)
+{
+    vfbScreenInfoPtr pvfb = data;
+    pvfb->has_damage = 1;
+}
+
+static void
+damage_destroy(DamagePtr pDamage, void *data)
+{
+}
+
+static Bool
+xwlnest_realize_window(WindowPtr window) {
+    ScreenPtr pScreen = window->drawable.pScreen;
+    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+    Bool ret;
+
+    pScreen->RealizeWindow = pvfb->RealizeWindow;
+    ret = (*pScreen->RealizeWindow) (window);
+    pvfb->RealizeWindow = pScreen->RealizeWindow;
+    pScreen->RealizeWindow = xwlnest_realize_window;
+
+    LogWrite(0, "xwlnest_realize_window(%p, %d)\n", window->drawable.id);
+
+    /* The first window is the rot window. */
+    if (!pvfb->damage) {
+        pvfb->damage = DamageCreate(damage_report, damage_destroy,
+                DamageReportNonEmpty,
+                FALSE, pScreen, pvfb);
+        DamageRegister(&window->drawable, pvfb->damage);
+        DamageSetReportAfterOp(pvfb->damage, TRUE);
+
+        vfbCreateOutputWindow(pvfb);
+
+    }
+
+    return ret;
+}
+
+
+static Bool
+xwlnest_unrealize_window(WindowPtr window) {
+    ScreenPtr pScreen = window->drawable.pScreen;
+    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+    Bool ret;
+
+    pScreen->UnrealizeWindow = pvfb->UnrealizeWindow;
+    ret = (*pScreen->UnrealizeWindow) (window);
+    pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
+    pScreen->UnrealizeWindow = xwlnest_unrealize_window;
+
+    LogWrite(0, "xwlnest_unrealize_window(%p, %d)\n", window->drawable.id);
+
+    return ret;
+}
 
 static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
@@ -1073,6 +1189,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     int dpix = monitorResolution, dpiy = monitorResolution;
     int ret;
     char *pbits;
+    WindowPtr window;
 
     if (dpix == 0)
         dpix = 100;
@@ -1158,6 +1275,12 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
 
+    pvfb->RealizeWindow = pScreen->RealizeWindow;
+    pScreen->RealizeWindow = xwlnest_realize_window;
+
+    pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
+    pScreen->UnrealizeWindow = xwlnest_unrealize_window;
+
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
 
@@ -1167,6 +1290,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
         return FALSE;
     }
 
+    pvfb->has_damage = 0;
     pvfb->registry = wl_display_get_registry(pvfb->display);
     wl_registry_add_listener(pvfb->registry,
                              &registry_listener, pvfb);
@@ -1181,7 +1305,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     SetNotifyFd(pvfb->wayland_fd, socket_handler, X_NOTIFY_READ, pvfb);
     RegisterBlockAndWakeupHandlers(block_handler, wakeup_handler, pvfb);
 
-    vfbCreateOutputWindow(pvfb);
+    //dixSetPrivate(&pScreen->root->devPrivates, &vfb_root_window_private_key, pvfb);
 
     return ret;
 
