@@ -6,9 +6,9 @@ AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
             $(XWLNESTMODULES_CFLAGS) \
 	    $(DIX_CFLAGS)
 
-SRCS =	InitInput.c \
-	InitOutput.c \
+SRCS =	InitOutput.c \
 	xwlnest-shm.c \
+	xwlnest-input.c \
 	$(top_srcdir)/mi/miinitext.c
 
 Xwlnest_SOURCES = $(SRCS)
