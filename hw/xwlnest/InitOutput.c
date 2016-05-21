@@ -44,10 +44,7 @@ static vfbScreenInfo defaultScreenInfo = {
 
 static Bool vfbPixmapDepths[33];
 
-#ifdef HAVE_MMAP
-static char *pfbdir = NULL;
-#endif
-typedef enum { NORMAL_MEMORY_FB, SHARED_MEMORY_FB, MMAPPED_FILE_FB } fbMemType;
+typedef enum { NORMAL_MEMORY_FB, SHARED_MEMORY_FB } fbMemType;
 static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 static char needswap = 0;
 static Bool Render = TRUE;
@@ -91,20 +88,6 @@ ddxGiveUp(enum ExitCode error)
     /* clean up the framebuffers */
 
     switch (fbmemtype) {
-#ifdef HAVE_MMAP
-    case MMAPPED_FILE_FB:
-        for (i = 0; i < vfbNumScreens; i++) {
-            if (-1 == unlink(vfbScreens[i].mmap_file)) {
-                perror("unlink");
-                ErrorF("unlink %s failed, %s",
-                       vfbScreens[i].mmap_file, strerror(errno));
-            }
-        }
-        break;
-#else                           /* HAVE_MMAP */
-    case MMAPPED_FILE_FB:
-        break;
-#endif                          /* HAVE_MMAP */
 
 #ifdef HAS_SHM
     case SHARED_MEMORY_FB:
@@ -169,11 +152,6 @@ ddxUseMsg(void)
     ErrorF("-linebias n            adjust thin line pixelization\n");
     ErrorF("-blackpixel n          pixel value for black\n");
     ErrorF("-whitepixel n          pixel value for white\n");
-
-#ifdef HAVE_MMAP
-    ErrorF
-        ("-fbdir directory       put framebuffers in mmap'ed files in directory\n");
-#endif
 
 #ifdef HAS_SHM
     ErrorF("-shmem                 put framebuffers in shared memory\n");
@@ -290,15 +268,6 @@ ddxProcessArgument(int argc, char *argv[], int i)
         return 2;
     }
 
-#ifdef HAVE_MMAP
-    if (strcmp(argv[i], "-fbdir") == 0) {       /* -fbdir directory */
-        CHECK_FOR_REQUIRED_ARGUMENTS(1);
-        pfbdir = argv[++i];
-        fbmemtype = MMAPPED_FILE_FB;
-        return 2;
-    }
-#endif                          /* HAVE_MMAP */
-
 #ifdef HAS_SHM
     if (strcmp(argv[i], "-shmem") == 0) {       /* -shmem */
         fbmemtype = SHARED_MEMORY_FB;
@@ -395,85 +364,6 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
     return TRUE;
 }
 
-#ifdef HAVE_MMAP
-
-/* this flushes any changes to the screens out to the mmapped file */
-static void
-vfbBlockHandler(void *blockData, OSTimePtr pTimeout, void *pReadmask)
-{
-    int i;
-
-    for (i = 0; i < vfbNumScreens; i++) {
-#ifdef MS_ASYNC
-        if (-1 == msync((caddr_t) vfbScreens[i].pXWDHeader,
-                        (size_t) vfbScreens[i].sizeInBytes, MS_ASYNC))
-#else
-        /* silly NetBSD and who else? */
-        if (-1 == msync((caddr_t) vfbScreens[i].pXWDHeader,
-                        (size_t) vfbScreens[i].sizeInBytes))
-#endif
-        {
-            perror("msync");
-            ErrorF("msync failed, %s", strerror(errno));
-        }
-    }
-}
-
-static void
-vfbWakeupHandler(void *blockData, int result, void *pReadmask)
-{
-}
-
-static void
-vfbAllocateMmappedFramebuffer(vfbScreenInfoPtr pvfb)
-{
-#define DUMMY_BUFFER_SIZE 65536
-    char dummyBuffer[DUMMY_BUFFER_SIZE];
-    int currentFileSize, writeThisTime;
-
-    snprintf(pvfb->mmap_file, sizeof(pvfb->mmap_file), "%s/Xvfb_screen%d",
-             pfbdir, (int) (pvfb - vfbScreens));
-    if (-1 == (pvfb->mmap_fd = open(pvfb->mmap_file, O_CREAT | O_RDWR, 0666))) {
-        perror("open");
-        ErrorF("open %s failed, %s", pvfb->mmap_file, strerror(errno));
-        return;
-    }
-
-    /* Extend the file to be the proper size */
-
-    memset(dummyBuffer, 0, DUMMY_BUFFER_SIZE);
-    for (currentFileSize = 0;
-         currentFileSize < pvfb->sizeInBytes;
-         currentFileSize += writeThisTime) {
-        writeThisTime = min(DUMMY_BUFFER_SIZE,
-                            pvfb->sizeInBytes - currentFileSize);
-        if (-1 == write(pvfb->mmap_fd, dummyBuffer, writeThisTime)) {
-            perror("write");
-            ErrorF("write %s failed, %s", pvfb->mmap_file, strerror(errno));
-            return;
-        }
-    }
-
-    /* try to mmap the file */
-
-    pvfb->pXWDHeader = (XWDFileHeader *) mmap((caddr_t) NULL, pvfb->sizeInBytes,
-                                              PROT_READ | PROT_WRITE,
-                                              MAP_FILE | MAP_SHARED,
-                                              pvfb->mmap_fd, 0);
-    if (-1 == (long) pvfb->pXWDHeader) {
-        perror("mmap");
-        ErrorF("mmap %s failed, %s", pvfb->mmap_file, strerror(errno));
-        pvfb->pXWDHeader = NULL;
-        return;
-    }
-
-    if (!RegisterBlockAndWakeupHandlers(vfbBlockHandler, vfbWakeupHandler,
-                                        NULL)) {
-        pvfb->pXWDHeader = NULL;
-    }
-}
-#endif                          /* HAVE_MMAP */
-
 #ifdef HAS_SHM
 static void
 vfbAllocateSharedMemoryFramebuffer(vfbScreenInfoPtr pvfb)
@@ -534,14 +424,6 @@ vfbAllocateFramebufferMemory(vfbScreenInfoPtr pvfb)
 
     pvfb->pXWDHeader = NULL;
     switch (fbmemtype) {
-#ifdef HAVE_MMAP
-    case MMAPPED_FILE_FB:
-        vfbAllocateMmappedFramebuffer(pvfb);
-        break;
-#else
-    case MMAPPED_FILE_FB:
-        break;
-#endif
 
 #ifdef HAS_SHM
     case SHARED_MEMORY_FB:
