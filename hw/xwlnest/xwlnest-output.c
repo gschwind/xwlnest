@@ -881,10 +881,12 @@ xwlnest_realize_window(WindowPtr window) {
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
     Bool ret;
 
+    /* call this function only once */
     pScreen->RealizeWindow = pvfb->RealizeWindow;
     ret = (*pScreen->RealizeWindow) (window);
-    pvfb->RealizeWindow = pScreen->RealizeWindow;
-    pScreen->RealizeWindow = xwlnest_realize_window;
+
+    //pvfb->RealizeWindow = pScreen->RealizeWindow;
+    //pScreen->RealizeWindow = xwlnest_realize_window;
 
     LogWrite(0, "xwlnest_realize_window(%p, %d)\n", window, window->drawable.id);
 
