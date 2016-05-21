@@ -753,7 +753,7 @@ vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb) {
         xwl_seat_destroy(xwl_seat);
     }
 
-    wl_surface_attach(pvfb->surface, buffer, 0, 0);
+    wl_surface_attach(pvfb->surface, NULL, 0, 0);
     wl_surface_commit(pvfb->surface);
 
     wl_shell_surface_destroy(pvfb->shell_surface);
