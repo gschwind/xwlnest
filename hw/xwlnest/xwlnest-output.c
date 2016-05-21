@@ -122,7 +122,7 @@ ddxBeforeReset(void)
 void
 ddxUseMsg(void)
 {
-    ErrorF("-screen scrn WxHxD     set screen's width, height, depth\n");
+    ErrorF("-screen WxH            set screen's width and height\n");
     ErrorF("+/-render		   turn on/off RENDER extension support"
            "(default on)\n");
     ErrorF("-linebias n            adjust thin line pixelization\n");
