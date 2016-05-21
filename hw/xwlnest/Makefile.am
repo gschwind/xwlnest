@@ -25,3 +25,9 @@ Xwlnest_LDFLAGS = $(LD_EXPORT_SYMBOLS_FLAG)
 
 relink:
 	$(AM_V_at)rm -f Xwlnest$(EXEEXT) && $(MAKE) Xwlnest$(EXEEXT)
+
+%-protocol.c : %.xml
+	$(AM_V_GEN)$(WAYLAND_SCANNER) code < $< > $@
+
+%-client-protocol.h : %.xml
+	$(AM_V_GEN)$(WAYLAND_SCANNER) client-header < $< > $@

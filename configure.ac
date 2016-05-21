@@ -2496,15 +2496,28 @@ fi
 
 dnl Xwlnest DDX
 
+XWLNESTMODULES="wayland-client >= 1.3.0 libdrm epoxy"
+if test "x$XF86VIDMODE" = xyes; then
+	XWLNESTMODULES="$XWLNESTMODULES $VIDMODEPROTO"
+fi
+PKG_CHECK_MODULES(XWLNESTMODULES, [$XWLNESTMODULES], [have_xwlnest=yes], [have_xwlnest=no])
 AC_MSG_CHECKING([whether to build Xwlnest DDX])
 AC_MSG_RESULT([$XWLNEST])
 AM_CONDITIONAL(XWLNEST, [test "x$XWLNEST" = xyes])
 
 if test "x$XWLNEST" = xyes; then
+	if test "x$have_xwlnest" = xno; then
+		AC_MSG_ERROR([Xwlnest build explicitly requested, but required modules not found.])
+	fi
+
 	XWLNEST_LIBS="$FB_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB"
 	XWLNEST_SYS_LIBS="$XWLNESTMODULES_LIBS $GLX_SYS_LIBS"
 	AC_SUBST([XWLNEST_LIBS])
 	AC_SUBST([XWLNEST_SYS_LIBS])
+
+	WAYLAND_PREFIX=`$PKG_CONFIG --variable=prefix wayland-client`
+	AC_PATH_PROG([WAYLAND_SCANNER], [wayland-scanner],,
+		     [${WAYLAND_PREFIX}/bin$PATH_SEPARATOR$PATH])
 fi
 
 dnl and the rest of these are generic, so they're in config.h
