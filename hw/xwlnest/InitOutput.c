@@ -68,6 +68,8 @@ from The Open Group.
 #include "glx_extinit.h"
 #include "randrstr.h"
 
+#include <wayland-client.h>
+
 #define VFB_DEFAULT_WIDTH      1280
 #define VFB_DEFAULT_HEIGHT     1024
 #define VFB_DEFAULT_DEPTH         8
@@ -92,6 +94,8 @@ typedef struct {
     Pixel whitePixel;
     unsigned int lineBias;
     CloseScreenProcPtr closeScreen;
+
+    struct wl_display *display;
 
 #ifdef HAVE_MMAP
     int mmap_fd;
@@ -952,6 +956,12 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;
+
+    pvfb->display = wl_display_connect(NULL);
+    if (pvfb->display == NULL) {
+        ErrorF("could not connect to wayland server\n");
+        return FALSE;
+    }
 
     return ret;
 
