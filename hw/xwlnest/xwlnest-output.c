@@ -624,8 +624,6 @@ xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
     RegionPtr region;
     struct wl_buffer *buffer;
 
-    LogWrite(0, "xwlnest::screen_post_damage\n");
-
     if(!pvfb->damage)
         return;
 
@@ -663,8 +661,6 @@ xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
                 int y = pBox->y1;
                 int w = pBox->x2 - pBox->x1;
                 int h = pBox->y2 - pBox->y1;
-
-                LogWrite(0, "damage %d %d %d %d\n", x, y, w, h);
 
                 wl_surface_damage(pvfb->surface, x, y, w, h);
                 (*pGC->ops->CopyArea)(&pvfb->output_pixmap->drawable,
