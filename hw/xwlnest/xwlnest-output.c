@@ -73,7 +73,7 @@ vfbBitsPerPixel(int depth)
 void
 ddxGiveUp(enum ExitCode error)
 {
-    int i;
+//    int i;
 
     /* clean up the framebuffers */
 
