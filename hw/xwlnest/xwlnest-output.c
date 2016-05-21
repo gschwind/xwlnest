@@ -889,7 +889,7 @@ xwlnest_realize_window(WindowPtr window) {
     pvfb->RealizeWindow = pScreen->RealizeWindow;
     pScreen->RealizeWindow = xwlnest_realize_window;
 
-    LogWrite(0, "xwlnest_realize_window(%p, %d)\n", window->drawable.id);
+    LogWrite(0, "xwlnest_realize_window(%p, %d)\n", window, window->drawable.id);
 
     /* The first window is the rot window. */
     if (!pvfb->damage) {
@@ -924,7 +924,7 @@ xwlnest_unrealize_window(WindowPtr window) {
     pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
     pScreen->UnrealizeWindow = xwlnest_unrealize_window;
 
-    LogWrite(0, "xwlnest_unrealize_window(%p, %d)\n", window->drawable.id);
+    LogWrite(0, "xwlnest_unrealize_window(%p, %d)\n", window, window->drawable.id);
 
     return ret;
 }
