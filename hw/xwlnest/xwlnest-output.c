@@ -42,14 +42,6 @@ static vfbScreenInfo defaultScreenInfo = {
 
 typedef enum { NORMAL_MEMORY_FB } fbMemType;
 
-#define swapcopy16(_dst, _src) \
-    if (needswap) { CARD16 _s = _src; cpswaps(_s, _dst); } \
-    else _dst = _src;
-
-#define swapcopy32(_dst, _src) \
-    if (needswap) { CARD32 _s = _src; cpswapl(_s, _dst); } \
-    else _dst = _src;
-
 static void
 vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb);
 
