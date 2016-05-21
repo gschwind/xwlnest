@@ -638,6 +638,7 @@ AC_ARG_ENABLE(xvfb,    	      AS_HELP_STRING([--enable-xvfb], [Build Xvfb server
 AC_ARG_ENABLE(xnest,   	      AS_HELP_STRING([--enable-xnest], [Build Xnest server (default: auto)]), [XNEST=$enableval], [XNEST=auto])
 AC_ARG_ENABLE(xquartz,        AS_HELP_STRING([--enable-xquartz], [Build Xquartz server for OS-X (default: auto)]), [XQUARTZ=$enableval], [XQUARTZ=auto])
 AC_ARG_ENABLE(xwayland,       AS_HELP_STRING([--enable-xwayland], [Build Xwayland server (default: auto)]), [XWAYLAND=$enableval], [XWAYLAND=auto])
+AC_ARG_ENABLE(xwlnest,        AS_HELP_STRING([--enable-xwlnest], [Build Xwlnest server (default: yes)]), [XWLNEST=$enableval], [XWLNEST=yes])
 AC_ARG_ENABLE(standalone-xpbproxy, AS_HELP_STRING([--enable-standalone-xpbproxy], [Build a standalone xpbproxy (in addition to the one integrated into Xquartz as a separate thread) (default: no)]), [STANDALONE_XPBPROXY=$enableval], [STANDALONE_XPBPROXY=no])
 AC_ARG_ENABLE(xwin,    	      AS_HELP_STRING([--enable-xwin], [Build XWin server (default: auto)]), [XWIN=$enableval], [XWIN=auto])
 AC_ARG_ENABLE(glamor,         AS_HELP_STRING([--enable-glamor], [Build glamor dix module (default: no)]), [GLAMOR=$enableval], [GLAMOR=no])
@@ -756,6 +757,7 @@ case $host_os in
 			XVFB=no
 			XNEST=no
 			XWAYLAND=no
+			XWLNEST=no
 
 			COMPOSITE=no
 			DGA=no
@@ -2492,6 +2494,18 @@ if test "x$XWAYLAND" = xyes; then
 		     [${WAYLAND_PREFIX}/bin$PATH_SEPARATOR$PATH])
 fi
 
+dnl Xwlnest DDX
+
+AC_MSG_CHECKING([whether to build Xwlnest DDX])
+AC_MSG_RESULT([$XWLNEST])
+AM_CONDITIONAL(XWLNEST, [test "x$XWLNEST" = xyes])
+
+if test "x$XWLNEST" = xyes; then
+	XWLNEST_LIBS="$FB_LIB $FIXES_LIB $XEXT_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB"
+	XWLNEST_SYS_LIBS="$XWLNESTMODULES_LIBS $GLX_SYS_LIBS"
+	AC_SUBST([XWLNEST_LIBS])
+	AC_SUBST([XWLNEST_SYS_LIBS])
+fi
 
 dnl and the rest of these are generic, so they're in config.h
 dnl 
@@ -2640,6 +2654,8 @@ hw/kdrive/fbdev/Makefile
 hw/kdrive/linux/Makefile
 hw/kdrive/src/Makefile
 hw/xwayland/Makefile
+hw/xwlnest/Makefile
+hw/xwlnest/man/Makefile
 test/Makefile
 test/xi1/Makefile
 test/xi2/Makefile
