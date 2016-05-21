@@ -43,7 +43,7 @@ static vfbScreenInfo defaultScreenInfo = {
 };
 
 typedef enum { NORMAL_MEMORY_FB } fbMemType;
-static fbMemType fbmemtype = NORMAL_MEMORY_FB;
+//static fbMemType fbmemtype = NORMAL_MEMORY_FB;
 //static char needswap = 0;
 
 #define swapcopy16(_dst, _src) \
