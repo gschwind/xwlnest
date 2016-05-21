@@ -96,6 +96,7 @@ typedef struct {
     CloseScreenProcPtr closeScreen;
 
     struct wl_display *display;
+    struct wl_registry *registry;
 
 #ifdef HAVE_MMAP
     int mmap_fd;
@@ -862,6 +863,58 @@ vfbRandRInit(ScreenPtr pScreen)
     return TRUE;
 }
 
+static void
+registry_global(void *data, struct wl_registry *registry, uint32_t id,
+                const char *interface, uint32_t version)
+{
+	LogWrite(0, "xwlnest::registry_global : %s (%d)\n", interface, version);
+//    struct xwl_screen *xwl_screen = data;
+//
+//    if (strcmp(interface, "wl_compositor") == 0) {
+//        xwl_screen->compositor =
+//            wl_registry_bind(registry, id, &wl_compositor_interface, 1);
+//    }
+//    else if (strcmp(interface, "wl_shm") == 0) {
+//        xwl_screen->shm = wl_registry_bind(registry, id, &wl_shm_interface, 1);
+//    }
+//    else if (strcmp(interface, "wl_shell") == 0) {
+//        xwl_screen->shell =
+//            wl_registry_bind(registry, id, &wl_shell_interface, 1);
+//    }
+//    else if (strcmp(interface, "wl_output") == 0 && version >= 2) {
+//        if (xwl_output_create(xwl_screen, id))
+//            xwl_screen->expecting_event++;
+//    }
+//#ifdef GLAMOR_HAS_GBM
+//    else if (xwl_screen->glamor &&
+//             strcmp(interface, "wl_drm") == 0 && version >= 2) {
+//        xwl_screen_init_glamor(xwl_screen, id, version);
+//    }
+//#endif
+}
+
+static void
+global_remove(void *data, struct wl_registry *registry, uint32_t name)
+{
+	LogWrite(0, "xwlnest::global_remove\n");
+//    struct xwl_screen *xwl_screen = data;
+//    struct xwl_output *xwl_output, *tmp_xwl_output;
+//
+//    xorg_list_for_each_entry_safe(xwl_output, tmp_xwl_output,
+//                                  &xwl_screen->output_list, link) {
+//        if (xwl_output->server_output_id == name) {
+//            xwl_output_destroy(xwl_output);
+//            break;
+//        }
+//    }
+}
+
+static const struct wl_registry_listener registry_listener = {
+    registry_global,
+    global_remove
+};
+
+
 static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
@@ -959,6 +1012,15 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     pvfb->display = wl_display_connect(NULL);
     if (pvfb->display == NULL) {
+        ErrorF("could not connect to wayland server\n");
+        return FALSE;
+    }
+
+    pvfb->registry = wl_display_get_registry(pvfb->display);
+    wl_registry_add_listener(pvfb->registry,
+                             &registry_listener, pvfb);
+    ret = wl_display_roundtrip(pvfb->display);
+    if (ret == -1) {
         ErrorF("could not connect to wayland server\n");
         return FALSE;
     }
