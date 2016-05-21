@@ -6,7 +6,7 @@ AM_CFLAGS = -DHAVE_DIX_CONFIG_H \
             $(XWLNESTMODULES_CFLAGS) \
 	    $(DIX_CFLAGS)
 
-SRCS =	InitOutput.c \
+SRCS =	xwlnest-output.c \
 	xwlnest-shm.c \
 	xwlnest-input.c \
 	xwlnest-cursor.c \
