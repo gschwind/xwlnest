@@ -204,11 +204,11 @@ ddxProcessArgument(int argc, char *argv[], int i)
       FatalError("Required argument to %s not specified\n", argv[i]);   \
     }
 
-    if (strcmp(argv[i], "-screen") == 0) {      /* -screen n WxHxD */
-        int screenNum;
+    if (strcmp(argv[i], "-screen") == 0) {      /* -screen WxH */
+        int screenNum = 0;
 
-        CHECK_FOR_REQUIRED_ARGUMENTS(2);
-        screenNum = atoi(argv[i + 1]);
+        CHECK_FOR_REQUIRED_ARGUMENTS(1);
+        screenNum = 0;
         /* The protocol only has a CARD8 for number of screens in the
            connection setup block, so don't allow more than that. */
         if ((screenNum < 0) || (screenNum >= 255)) {
@@ -227,18 +227,19 @@ ddxProcessArgument(int argc, char *argv[], int i)
                 vfbScreens[vfbNumScreens] = defaultScreenInfo;
         }
 
-        if (3 != sscanf(argv[i + 2], "%dx%dx%d",
+        if (2 != sscanf(argv[i + 1], "%dx%d",
                         &vfbScreens[screenNum].width,
-                        &vfbScreens[screenNum].height,
-                        &vfbScreens[screenNum].depth)) {
+                        &vfbScreens[screenNum].height)) {
             ErrorF("Invalid screen configuration %s\n", argv[i + 2]);
             UseMsg();
             FatalError("Invalid screen configuration %s for -screen %d\n",
-                       argv[i + 2], screenNum);
+                       argv[i + 1], screenNum);
         }
 
+        vfbScreens[screenNum].depth = 24;
+
         lastScreen = screenNum;
-        return 3;
+        return 2;
     }
 
     if (strcmp(argv[i], "-pixdepths") == 0) {   /* -pixdepths list-of-depth */
