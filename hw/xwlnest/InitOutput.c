@@ -880,6 +880,31 @@ vfbRandRInit(ScreenPtr pScreen)
 }
 
 static void
+shell_surface_ping(void *data,
+                   struct wl_shell_surface *shell_surface, uint32_t serial)
+{
+    wl_shell_surface_pong(shell_surface, serial);
+}
+
+static void
+shell_surface_configure(void *data,
+                        struct wl_shell_surface *wl_shell_surface,
+                        uint32_t edges, int32_t width, int32_t height)
+{
+}
+
+static void
+shell_surface_popup_done(void *data, struct wl_shell_surface *wl_shell_surface)
+{
+}
+
+static const struct wl_shell_surface_listener shell_surface_listener = {
+    shell_surface_ping,
+    shell_surface_configure,
+    shell_surface_popup_done
+};
+
+static void
 frame_callback(void *data,
                struct wl_callback *callback,
                uint32_t time)
@@ -909,8 +934,8 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
         ErrorF("Failed creating shell surface\n");
     }
 
-    //wl_shell_surface_add_listener(xwl_window->shell_surface,
-    //                              &shell_surface_listener, xwl_window);
+    wl_shell_surface_add_listener(pvfb->shell_surface,
+                                  &shell_surface_listener, pvfb);
 
     wl_shell_surface_set_toplevel(pvfb->shell_surface);
 
