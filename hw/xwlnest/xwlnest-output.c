@@ -910,21 +910,21 @@ xwlnest_realize_window(WindowPtr window) {
 }
 
 
-static Bool
-xwlnest_unrealize_window(WindowPtr window) {
-    ScreenPtr pScreen = window->drawable.pScreen;
-    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
-    Bool ret;
-
-    pScreen->UnrealizeWindow = pvfb->UnrealizeWindow;
-    ret = (*pScreen->UnrealizeWindow) (window);
-    pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
-    pScreen->UnrealizeWindow = xwlnest_unrealize_window;
-
-    LogWrite(0, "xwlnest_unrealize_window(%p, %d)\n", window, window->drawable.id);
-
-    return ret;
-}
+//static Bool
+//xwlnest_unrealize_window(WindowPtr window) {
+//    ScreenPtr pScreen = window->drawable.pScreen;
+//    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+//    Bool ret;
+//
+//    pScreen->UnrealizeWindow = pvfb->UnrealizeWindow;
+//    ret = (*pScreen->UnrealizeWindow) (window);
+//    pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
+//    pScreen->UnrealizeWindow = xwlnest_unrealize_window;
+//
+//    LogWrite(0, "xwlnest_unrealize_window(%p, %d)\n", window, window->drawable.id);
+//
+//    return ret;
+//}
 
 static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
@@ -1024,8 +1024,8 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pvfb->RealizeWindow = pScreen->RealizeWindow;
     pScreen->RealizeWindow = xwlnest_realize_window;
 
-    pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
-    pScreen->UnrealizeWindow = xwlnest_unrealize_window;
+    //pvfb->UnrealizeWindow = pScreen->UnrealizeWindow;
+    //pScreen->UnrealizeWindow = xwlnest_unrealize_window;
 
     pvfb->closeScreen = pScreen->CloseScreen;
     pScreen->CloseScreen = vfbCloseScreen;

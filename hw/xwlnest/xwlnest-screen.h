@@ -97,7 +97,7 @@ typedef struct {
     ScreenPtr pScreen;
 
     RealizeWindowProcPtr RealizeWindow;
-    UnrealizeWindowProcPtr UnrealizeWindow;
+    //UnrealizeWindowProcPtr UnrealizeWindow;
     CloseScreenProcPtr closeScreen;
 
     int wayland_fd;
