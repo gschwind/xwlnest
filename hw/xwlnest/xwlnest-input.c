@@ -566,10 +566,10 @@ static const struct wl_keyboard_listener keyboard_listener = {
     keyboard_handle_repeat_info,
 };
 
-static struct xwl_touch *
+static struct xwlnest_touch *
 xwl_seat_lookup_touch(struct xwl_seat *xwl_seat, int32_t id)
 {
-    struct xwl_touch *xwl_touch, *next_xwl_touch;
+    struct xwlnest_touch *xwl_touch, *next_xwl_touch;
 
     xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
                                   &xwl_seat->touches, link_touch) {
@@ -581,7 +581,7 @@ xwl_seat_lookup_touch(struct xwl_seat *xwl_seat, int32_t id)
 }
 
 static void
-xwl_touch_send_event(struct xwl_touch *xwl_touch,
+xwl_touch_send_event(struct xwlnest_touch *xwl_touch,
                      struct xwl_seat *xwl_seat, int type)
 {
     int32_t dx, dy;
@@ -603,7 +603,7 @@ touch_handle_down(void *data, struct wl_touch *wl_touch,
                   int32_t id, wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
     struct xwl_seat *xwl_seat = data;
-    struct xwl_touch *xwl_touch;
+    struct xwlnest_touch *xwl_touch;
 
     if (surface == NULL)
         return;
@@ -627,7 +627,7 @@ static void
 touch_handle_up(void *data, struct wl_touch *wl_touch,
                 uint32_t serial, uint32_t time, int32_t id)
 {
-    struct xwl_touch *xwl_touch;
+    struct xwlnest_touch *xwl_touch;
     struct xwl_seat *xwl_seat = data;
 
     xwl_touch = xwl_seat_lookup_touch(xwl_seat, id);
@@ -646,7 +646,7 @@ touch_handle_motion(void *data, struct wl_touch *wl_touch,
                     wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
     struct xwl_seat *xwl_seat = data;
-    struct xwl_touch *xwl_touch;
+    struct xwlnest_touch *xwl_touch;
 
     xwl_touch = xwl_seat_lookup_touch(xwl_seat, id);
 
@@ -667,7 +667,7 @@ static void
 touch_handle_cancel(void *data, struct wl_touch *wl_touch)
 {
     struct xwl_seat *xwl_seat = data;
-    struct xwl_touch *xwl_touch, *next_xwl_touch;
+    struct xwlnest_touch *xwl_touch, *next_xwl_touch;
 
     xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
                                   &xwl_seat->touches, link_touch) {
@@ -822,7 +822,7 @@ create_input_device(struct xwlnest_screen * pvfb, uint32_t id, uint32_t version)
 void
 xwl_seat_destroy(struct xwl_seat *xwl_seat)
 {
-    struct xwl_touch *xwl_touch, *next_xwl_touch;
+    struct xwlnest_touch *xwl_touch, *next_xwl_touch;
 
     xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
                                   &xwl_seat->touches, link_touch) {

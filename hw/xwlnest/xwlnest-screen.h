@@ -125,7 +125,7 @@ struct xwlnest_screen {
 
 };
 
-struct xwl_touch {
+struct xwlnest_touch {
     //struct xwl_window *window;
     int32_t id;
     int x, y;
