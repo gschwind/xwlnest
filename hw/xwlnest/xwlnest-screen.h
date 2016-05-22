@@ -79,7 +79,7 @@
 #define VFB_DEFAULT_LINEBIAS      0
 #define XWD_WINDOW_NAME_LEN      60
 
-typedef struct xwlnest_screen {
+struct xwlnest_screen {
     int width;
     int paddedBytesWidth;
     int paddedWidth;
@@ -131,7 +131,7 @@ typedef struct xwlnest_screen {
 #ifdef HAS_SHM
     int shmid;
 #endif
-} vfbScreenInfo, *vfbScreenInfoPtr;
+};
 
 struct xwl_touch {
     //struct xwl_window *window;
