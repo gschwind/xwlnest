@@ -1,4 +1,5 @@
 /*
+ * Copyright © 2014 Intel Corporation
  * Copyright © 2016 Benoit Gschwind
  *
  * Permission to use, copy, modify, distribute, and sell this software
