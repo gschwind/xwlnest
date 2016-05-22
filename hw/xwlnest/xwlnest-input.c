@@ -238,7 +238,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     xwl_seat->xwl_screen->serial = serial;
     xwl_seat->pointer_enter_serial = serial;
 
-    //xwl_seat->focus_window = wl_surface_get_user_data(surface);
+    xwl_seat->has_focus_window = 1;
 
     master = GetMaster(dev, POINTER_OR_FLOAT);
     (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
@@ -288,7 +288,7 @@ pointer_handle_leave(void *data, struct wl_pointer *pointer,
 
     xwl_seat->xwl_screen->serial = serial;
 
-    //xwl_seat->focus_window = NULL;
+    xwl_seat->has_focus_window = 0;
     CheckMotion(NULL, GetMaster(dev, POINTER_OR_FLOAT));
 }
 
@@ -302,8 +302,8 @@ pointer_handle_motion(void *data, struct wl_pointer *pointer,
     int sy = wl_fixed_to_int(sy_w);
     ValuatorMask mask;
 
-//    if (!xwl_seat->focus_window)
-//        return;
+    if (!xwl_seat->has_focus_window)
+        return;
 
     /* root window areat (0, 0) */
     dx = 0; //xwl_seat->focus_window->window->drawable.x;

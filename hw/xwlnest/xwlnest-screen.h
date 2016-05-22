@@ -150,7 +150,7 @@ struct xwl_seat {
     struct wl_keyboard *wl_keyboard;
     struct wl_touch *wl_touch;
     struct wl_array keys;
-    //struct xwl_window *focus_window;
+    int has_focus_window;
     uint32_t id;
     uint32_t pointer_enter_serial;
     struct xorg_list link;
