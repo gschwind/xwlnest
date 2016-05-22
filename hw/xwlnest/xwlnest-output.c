@@ -685,6 +685,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     if (dpiy == 0)
         dpiy = 100;
 
+    pvfb->pScreen = pScreen;
     pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);
     pvfb->bitsPerPixel = vfbBitsPerPixel(pvfb->depth);
     if (pvfb->bitsPerPixel >= 8)
@@ -751,7 +752,7 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     pScreen->SaveScreen = vfbSaveScreen;
 
-    miDCInitialize(pScreen, &vfbPointerCursorFuncs);
+    //miDCInitialize(pScreen, &vfbPointerCursorFuncs);
 
     pScreen->blackPixel = pvfb->blackPixel;
     pScreen->whitePixel = pvfb->whitePixel;
@@ -759,8 +760,10 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     ret = fbCreateDefColormap(pScreen);
 
     miSetZeroLineBias(pScreen, pvfb->lineBias);
+    
+    if (!xwl_screen_init_cursor(pvfb))
+        return FALSE;
 
-    pvfb->pScreen = pScreen;
 
     pvfb->RealizeWindow = pScreen->RealizeWindow;
     pScreen->RealizeWindow = xwlnest_realize_window;

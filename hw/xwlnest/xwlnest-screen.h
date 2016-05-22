@@ -175,4 +175,7 @@ xwl_seat_set_cursor(struct xwl_seat *xwl_seat);
 void
 xwl_seat_destroy(struct xwl_seat *xwl_seat);
 
+Bool
+xwl_screen_init_cursor(vfbScreenInfoPtr xwl_screen);
+
 #endif /* HW_XWLNEST_XWLNEST_SCREEN_H_ */
