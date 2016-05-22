@@ -163,7 +163,7 @@ struct xwl_seat {
 
     size_t keymap_size;
     char *keymap;
-    //struct wl_surface *keyboard_focus;
+    int has_keyboard_focus;
 };
 
 extern int vfbNumScreens;

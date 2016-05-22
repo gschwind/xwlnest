@@ -459,7 +459,7 @@ keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
     uint32_t *k;
 
     xwl_seat->xwl_screen->serial = serial;
-    //xwl_seat->keyboard_focus = surface;
+    xwl_seat->has_keyboard_focus = 1;
 
     wl_array_copy(&xwl_seat->keys, keys);
     wl_array_for_each(k, &xwl_seat->keys)
@@ -482,7 +482,7 @@ keyboard_handle_leave(void *data, struct wl_keyboard *keyboard,
     wl_array_for_each(k, &xwl_seat->keys)
         QueueKeyboardEvents(xwl_seat->keyboard, KeyRelease, *k + 8);
 
-    //xwl_seat->keyboard_focus = NULL;
+    xwl_seat->has_keyboard_focus = 0;
 }
 
 static void
@@ -505,11 +505,11 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
         old_state = dev->key->xkbInfo->state;
         new_state = &dev->key->xkbInfo->state;
 
-//        if (!xwl_seat->keyboard_focus) {
-//            new_state->locked_mods = mods_locked & XkbAllModifiersMask;
-//            XkbLatchModifiers(dev, XkbAllModifiersMask,
-//                              mods_latched & XkbAllModifiersMask);
-//        }
+        if (!xwl_seat->has_keyboard_focus) {
+            new_state->locked_mods = mods_locked & XkbAllModifiersMask;
+            XkbLatchModifiers(dev, XkbAllModifiersMask,
+                              mods_latched & XkbAllModifiersMask);
+        }
         new_state->locked_group = group & XkbAllGroupsMask;
 
         XkbComputeDerivedState(dev->key->xkbInfo);
