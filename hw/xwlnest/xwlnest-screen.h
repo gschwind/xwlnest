@@ -105,6 +105,8 @@ struct xwlnest_screen {
 
     struct xwl_pixmap *pixmap; // shared pixmap with wayland.
 
+    /* prepare read ensure that we do not prepare read several times before
+     * actual read. */
     int prepare_read;
     int has_damage;
 
