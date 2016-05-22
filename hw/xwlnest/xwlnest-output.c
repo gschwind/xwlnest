@@ -35,9 +35,9 @@ void xwlVidModeExtensionInit(void);
 #endif
 
 int vfbNumScreens = 0;
-vfbScreenInfo *vfbScreens = NULL;
+struct xwlnest_screen *vfbScreens = NULL;
 
-static vfbScreenInfo defaultScreenInfo = {
+static struct xwlnest_screen defaultScreenInfo = {
     .width = VFB_DEFAULT_WIDTH,
     .height = VFB_DEFAULT_HEIGHT,
     .depth = VFB_DEFAULT_DEPTH,
@@ -115,7 +115,7 @@ ddxProcessArgument(int argc, char *argv[], int i)
 {
     static Bool firstTime = TRUE;
     static int lastScreen = -1;
-    vfbScreenInfo *currentScreen;
+    struct xwlnest_screen *currentScreen;
 
     if (firstTime) {
         firstTime = FALSE;
