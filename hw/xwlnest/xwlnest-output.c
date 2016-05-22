@@ -199,23 +199,6 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
 }
 
 static Bool
-vfbCursorOffScreen(ScreenPtr *ppScreen, int *x, int *y)
-{
-    return FALSE;
-}
-
-static void
-vfbCrossScreen(ScreenPtr pScreen, Bool entering)
-{
-}
-
-static miPointerScreenFuncRec vfbPointerCursorFuncs = {
-    vfbCursorOffScreen,
-    vfbCrossScreen,
-    miPointerWarpCursor
-};
-
-static Bool
 vfbCloseScreen(ScreenPtr pScreen)
 {
     vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
