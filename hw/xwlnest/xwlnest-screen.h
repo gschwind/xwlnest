@@ -127,10 +127,6 @@ struct xwlnest_screen {
     int mmap_fd;
     char mmap_file[MAXPATHLEN];
 #endif
-
-#ifdef HAS_SHM
-    int shmid;
-#endif
 };
 
 struct xwl_touch {
