@@ -170,4 +170,7 @@ xwl_seat_destroy(struct xwlnest_seat *xwl_seat);
 Bool
 xwl_screen_init_cursor(struct xwlnest_screen * xwl_screen);
 
+void
+xwlVidModeExtensionInit(void);
+
 #endif /* HW_XWLNEST_XWLNEST_SCREEN_H_ */

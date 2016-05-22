@@ -31,7 +31,6 @@ from The Open Group.
 #ifdef XF86VIDMODE
 #include <X11/extensions/xf86vmproto.h>
 _X_EXPORT Bool noXFree86VidModeExtension;
-void xwlVidModeExtensionInit(void);
 #endif
 
 int vfbNumScreens = 0;
