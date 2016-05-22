@@ -88,7 +88,7 @@ frame_callback(void *data,
                struct wl_callback *callback,
                uint32_t time)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     xwl_seat->cursor_frame_cb = NULL;
     if (xwl_seat->cursor_needs_update) {
         xwl_seat->cursor_needs_update = FALSE;
@@ -101,7 +101,7 @@ static const struct wl_callback_listener frame_listener = {
 };
 
 void
-xwl_seat_set_cursor(struct xwl_seat *xwl_seat)
+xwl_seat_set_cursor(struct xwlnest_seat *xwl_seat)
 {
     struct xwl_pixmap *pixmap;
     CursorPtr cursor;
@@ -151,7 +151,7 @@ static void
 xwl_set_cursor(DeviceIntPtr device,
                ScreenPtr screen, CursorPtr cursor, int x, int y)
 {
-    struct xwl_seat *xwl_seat;
+    struct xwlnest_seat *xwl_seat;
 
     xwl_seat = device->public.devicePrivate;
     if (xwl_seat == NULL)

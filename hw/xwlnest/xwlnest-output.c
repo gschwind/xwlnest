@@ -511,7 +511,7 @@ vfbCreateOutputWindow(struct xwlnest_screen * pvfb) {
 
 static void
 vfbDestroyOutputWindow(struct xwlnest_screen * pvfb) {
-    struct xwl_seat *xwl_seat, *next_xwl_seat;
+    struct xwlnest_seat *xwl_seat, *next_xwl_seat;
 
     xorg_list_for_each_entry_safe(xwl_seat, next_xwl_seat,
                                   &pvfb->seat_list, link) {

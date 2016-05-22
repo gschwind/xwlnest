@@ -132,7 +132,7 @@ struct xwlnest_touch {
     struct xorg_list link_touch;
 };
 
-struct xwl_seat {
+struct xwlnest_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
     DeviceIntPtr touch;
@@ -162,10 +162,10 @@ extern int vfbNumScreens;
 extern struct xwlnest_screen *vfbScreens;
 
 void
-xwl_seat_set_cursor(struct xwl_seat *xwl_seat);
+xwl_seat_set_cursor(struct xwlnest_seat *xwl_seat);
 
 void
-xwl_seat_destroy(struct xwl_seat *xwl_seat);
+xwl_seat_destroy(struct xwlnest_seat *xwl_seat);
 
 Bool
 xwl_screen_init_cursor(struct xwlnest_screen * xwl_screen);

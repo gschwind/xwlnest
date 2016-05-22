@@ -127,7 +127,7 @@ xwl_keyboard_control(DeviceIntPtr device, KeybdCtrl *ctrl)
 static int
 xwl_keyboard_proc(DeviceIntPtr device, int what)
 {
-    struct xwl_seat *xwl_seat = device->public.devicePrivate;
+    struct xwlnest_seat *xwl_seat = device->public.devicePrivate;
     int len;
 
     switch (what) {
@@ -162,7 +162,7 @@ xwl_touch_proc(DeviceIntPtr device, int what)
 #define NTOUCHPOINTS 20
 #define NBUTTONS 1
 #define NAXES 2
-    struct xwl_seat *xwl_seat = device->public.devicePrivate;
+    struct xwlnest_seat *xwl_seat = device->public.devicePrivate;
     Atom btn_labels[NBUTTONS] = { 0 };
     Atom axes_labels[NAXES] = { 0 };
     BYTE map[NBUTTONS + 1] = { 0 };
@@ -216,7 +216,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface,
                      wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     DeviceIntPtr dev = xwl_seat->pointer;
     DeviceIntPtr master;
     miPointerPtr mipointer;
@@ -283,7 +283,7 @@ static void
 pointer_handle_leave(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     DeviceIntPtr dev = xwl_seat->pointer;
 
     xwl_seat->xwl_screen->serial = serial;
@@ -296,7 +296,7 @@ static void
 pointer_handle_motion(void *data, struct wl_pointer *pointer,
                       uint32_t time, wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     int32_t dx, dy;
     int sx = wl_fixed_to_int(sx_w);
     int sy = wl_fixed_to_int(sy_w);
@@ -321,7 +321,7 @@ static void
 pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
                       uint32_t time, uint32_t button, uint32_t state)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     int index;
     ValuatorMask mask;
 
@@ -353,7 +353,7 @@ static void
 pointer_handle_axis(void *data, struct wl_pointer *pointer,
                     uint32_t time, uint32_t axis, wl_fixed_t value)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     int index;
     const int divisor = 10;
     ValuatorMask mask;
@@ -386,7 +386,7 @@ static void
 keyboard_handle_key(void *data, struct wl_keyboard *keyboard, uint32_t serial,
                     uint32_t time, uint32_t key, uint32_t state)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     uint32_t *k, *end;
 
     xwl_seat->xwl_screen->serial = serial;
@@ -410,7 +410,7 @@ static void
 keyboard_handle_keymap(void *data, struct wl_keyboard *keyboard,
                        uint32_t format, int fd, uint32_t size)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     DeviceIntPtr master;
     XkbDescPtr xkb;
     XkbChangesRec changes = { 0 };
@@ -455,7 +455,7 @@ keyboard_handle_enter(void *data, struct wl_keyboard *keyboard,
                       uint32_t serial,
                       struct wl_surface *surface, struct wl_array *keys)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     uint32_t *k;
 
     xwl_seat->xwl_screen->serial = serial;
@@ -470,7 +470,7 @@ static void
 keyboard_handle_leave(void *data, struct wl_keyboard *keyboard,
                       uint32_t serial, struct wl_surface *surface)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     uint32_t *k;
 
     xwl_seat->xwl_screen->serial = serial;
@@ -491,7 +491,7 @@ keyboard_handle_modifiers(void *data, struct wl_keyboard *keyboard,
                           uint32_t mods_latched, uint32_t mods_locked,
                           uint32_t group)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     DeviceIntPtr dev;
     XkbStateRec old_state, *new_state;
     xkbStateNotify sn;
@@ -531,7 +531,7 @@ static void
 keyboard_handle_repeat_info (void *data, struct wl_keyboard *keyboard,
                              int32_t rate, int32_t delay)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     DeviceIntPtr dev;
     XkbControlsPtr ctrl;
 
@@ -567,7 +567,7 @@ static const struct wl_keyboard_listener keyboard_listener = {
 };
 
 static struct xwlnest_touch *
-xwl_seat_lookup_touch(struct xwl_seat *xwl_seat, int32_t id)
+xwl_seat_lookup_touch(struct xwlnest_seat *xwl_seat, int32_t id)
 {
     struct xwlnest_touch *xwl_touch, *next_xwl_touch;
 
@@ -582,7 +582,7 @@ xwl_seat_lookup_touch(struct xwl_seat *xwl_seat, int32_t id)
 
 static void
 xwl_touch_send_event(struct xwlnest_touch *xwl_touch,
-                     struct xwl_seat *xwl_seat, int type)
+                     struct xwlnest_seat *xwl_seat, int type)
 {
     int32_t dx, dy;
     ValuatorMask mask;
@@ -602,7 +602,7 @@ touch_handle_down(void *data, struct wl_touch *wl_touch,
                   struct wl_surface *surface,
                   int32_t id, wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     struct xwlnest_touch *xwl_touch;
 
     if (surface == NULL)
@@ -628,7 +628,7 @@ touch_handle_up(void *data, struct wl_touch *wl_touch,
                 uint32_t serial, uint32_t time, int32_t id)
 {
     struct xwlnest_touch *xwl_touch;
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
 
     xwl_touch = xwl_seat_lookup_touch(xwl_seat, id);
 
@@ -645,7 +645,7 @@ touch_handle_motion(void *data, struct wl_touch *wl_touch,
                     uint32_t time, int32_t id,
                     wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     struct xwlnest_touch *xwl_touch;
 
     xwl_touch = xwl_seat_lookup_touch(xwl_seat, id);
@@ -666,7 +666,7 @@ touch_handle_frame(void *data, struct wl_touch *wl_touch)
 static void
 touch_handle_cancel(void *data, struct wl_touch *wl_touch)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
     struct xwlnest_touch *xwl_touch, *next_xwl_touch;
 
     xorg_list_for_each_entry_safe(xwl_touch, next_xwl_touch,
@@ -690,7 +690,7 @@ static const struct wl_touch_listener touch_listener = {
 };
 
 static DeviceIntPtr
-add_device(struct xwl_seat *xwl_seat,
+add_device(struct xwlnest_seat *xwl_seat,
            const char *driver, DeviceProc device_proc)
 {
     DeviceIntPtr dev = NULL;
@@ -716,7 +716,7 @@ static void
 seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
-    struct xwl_seat *xwl_seat = data;
+    struct xwlnest_seat *xwl_seat = data;
 
     LogWrite(0, "xwlnest::seat_handle_capabilities\n");
 
@@ -796,7 +796,7 @@ static const struct wl_seat_listener seat_listener = {
 static void
 create_input_device(struct xwlnest_screen * pvfb, uint32_t id, uint32_t version)
 {
-    struct xwl_seat *xwl_seat;
+    struct xwlnest_seat *xwl_seat;
 
     xwl_seat = calloc(sizeof *xwl_seat, 1);
     if (xwl_seat == NULL) {
@@ -820,7 +820,7 @@ create_input_device(struct xwlnest_screen * pvfb, uint32_t id, uint32_t version)
 }
 
 void
-xwl_seat_destroy(struct xwl_seat *xwl_seat)
+xwl_seat_destroy(struct xwlnest_seat *xwl_seat)
 {
     struct xwlnest_touch *xwl_touch, *next_xwl_touch;
 
