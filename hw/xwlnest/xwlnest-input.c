@@ -716,8 +716,9 @@ static void
 seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
-    LogWrite(0, "xwlnest::seat_handle_capabilities\n");
     struct xwl_seat *xwl_seat = data;
+
+    LogWrite(0, "xwlnest::seat_handle_capabilities\n");
 
     if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
         xwl_seat->wl_pointer = wl_seat_get_pointer(seat);
@@ -841,9 +842,9 @@ static void
 input_handler(void *data, struct wl_registry *registry, uint32_t id,
               const char *interface, uint32_t version)
 {
-    LogWrite(0, "xwlnest::input_handler\n");
-
     vfbScreenInfoPtr pvfb = data;
+
+    LogWrite(0, "xwlnest::input_handler\n");
 
     if (strcmp(interface, "wl_seat") == 0 && version >= 3) {
         create_input_device(pvfb, id, version);
