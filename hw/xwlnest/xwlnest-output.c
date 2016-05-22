@@ -28,6 +28,12 @@ from The Open Group.
 
 #include "xwlnest-screen.h"
 
+#ifdef XF86VIDMODE
+#include <X11/extensions/xf86vmproto.h>
+_X_EXPORT Bool noXFree86VidModeExtension;
+void xwlVidModeExtensionInit(void);
+#endif
+
 int vfbNumScreens = 0;
 vfbScreenInfo *vfbScreens = NULL;
 
@@ -792,6 +798,9 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 static const ExtensionModule vfbExtensions[] = {
 #ifdef GLXEXT
     { GlxExtensionInit, "GLX", &noGlxExtension },
+#endif
+#ifdef XF86VIDMODE
+    { xwlVidModeExtensionInit, XF86VIDMODENAME, &noXFree86VidModeExtension },
 #endif
 };
 

@@ -10,6 +10,7 @@ SRCS =	xwlnest-output.c \
 	xwlnest-shm.c \
 	xwlnest-input.c \
 	xwlnest-cursor.c \
+	xwlnest-vidmode.c \
 	$(top_srcdir)/mi/miinitext.c
 
 Xwlnest_SOURCES = $(SRCS)
@@ -19,6 +20,7 @@ XWLNEST_LIBS = \
 	$(MAIN_LIB) \
 	$(XSERVER_LIBS) \
 	$(top_builddir)/Xext/libXextdpmsstubs.la \
+	$(top_builddir)/Xext/libXvidmode.la	\
 	$(top_builddir)/Xi/libXistubs.la
 
 Xwlnest_LDADD = $(XWLNEST_LIBS) $(XWLNEST_SYS_LIBS) $(XSERVER_SYS_LIBS)
