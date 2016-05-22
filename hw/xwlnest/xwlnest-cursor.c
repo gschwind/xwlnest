@@ -210,7 +210,7 @@ static miPointerScreenFuncRec xwl_pointer_screen_funcs = {
 };
 
 Bool
-xwl_screen_init_cursor(vfbScreenInfoPtr xwl_screen)
+xwl_screen_init_cursor(struct xwlnest_screen * xwl_screen)
 {
     if (!dixRegisterPrivateKey(&xwl_cursor_private_key, PRIVATE_CURSOR_BITS, 0))
         return FALSE;

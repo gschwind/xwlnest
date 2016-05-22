@@ -79,7 +79,7 @@
 #define VFB_DEFAULT_LINEBIAS      0
 #define XWD_WINDOW_NAME_LEN      60
 
-typedef struct {
+typedef struct xwlnest_screen {
     int width;
     int paddedBytesWidth;
     int paddedWidth;
@@ -144,7 +144,7 @@ struct xwl_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;
     DeviceIntPtr touch;
-    vfbScreenInfoPtr xwl_screen;
+    struct xwlnest_screen * xwl_screen;
     struct wl_seat *seat;
     struct wl_pointer *wl_pointer;
     struct wl_keyboard *wl_keyboard;
@@ -176,6 +176,6 @@ void
 xwl_seat_destroy(struct xwl_seat *xwl_seat);
 
 Bool
-xwl_screen_init_cursor(vfbScreenInfoPtr xwl_screen);
+xwl_screen_init_cursor(struct xwlnest_screen * xwl_screen);
 
 #endif /* HW_XWLNEST_XWLNEST_SCREEN_H_ */

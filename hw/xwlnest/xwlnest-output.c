@@ -49,7 +49,7 @@ static vfbScreenInfo defaultScreenInfo = {
 typedef enum { NORMAL_MEMORY_FB } fbMemType;
 
 static void
-vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb);
+vfbDestroyOutputWindow(struct xwlnest_screen * pvfb);
 
 static int
 vfbBitsPerPixel(int depth)
@@ -201,7 +201,7 @@ vfbSaveScreen(ScreenPtr pScreen, int on)
 static Bool
 vfbCloseScreen(ScreenPtr pScreen)
 {
-    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+    struct xwlnest_screen * pvfb = &vfbScreens[pScreen->myNum];
 
     RemoveNotifyFd(pvfb->wayland_fd);
 
@@ -383,7 +383,7 @@ frame_callback(void *data,
                struct wl_callback *callback,
                uint32_t time)
 {
-    vfbScreenInfoPtr pvfb = data;
+    struct xwlnest_screen * pvfb = data;
     pvfb->frame_callback = NULL;
 }
 
@@ -392,7 +392,7 @@ static const struct wl_callback_listener frame_listener = {
 };
 
 static void
-xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
+xwlnest_screen_post_damage(struct xwlnest_screen * pvfb)
 {
     RegionPtr region;
     struct wl_buffer *buffer;
@@ -456,7 +456,7 @@ xwlnest_screen_post_damage(vfbScreenInfoPtr pvfb)
 }
 
 static void
-vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
+vfbCreateOutputWindow(struct xwlnest_screen * pvfb) {
     struct wl_buffer *buffer;
     struct wl_region *region;
 
@@ -510,7 +510,7 @@ vfbCreateOutputWindow(vfbScreenInfoPtr pvfb) {
 }
 
 static void
-vfbDestroyOutputWindow(vfbScreenInfoPtr pvfb) {
+vfbDestroyOutputWindow(struct xwlnest_screen * pvfb) {
     struct xwl_seat *xwl_seat, *next_xwl_seat;
 
     xorg_list_for_each_entry_safe(xwl_seat, next_xwl_seat,
@@ -539,7 +539,7 @@ static void
 registry_global(void *data, struct wl_registry *registry, uint32_t id,
                 const char *interface, uint32_t version)
 {
-    vfbScreenInfoPtr pvfb = data;
+    struct xwlnest_screen * pvfb = data;
 
     LogWrite(0, "xwlnest::registry_global : %s (%d)\n", interface, version);
 
@@ -569,7 +569,7 @@ static const struct wl_registry_listener registry_listener = {
 static void
 socket_handler(int fd, int ready, void *data)
 {
-    vfbScreenInfoPtr pvfb = data;
+    struct xwlnest_screen * pvfb = data;
     int ret;
 
     ret = wl_display_read_events(pvfb->display);
@@ -591,7 +591,7 @@ wakeup_handler(void *data, int err, void *pRead)
 static void
 block_handler(void *data, OSTimePtr pTimeout, void *pRead)
 {
-    vfbScreenInfoPtr pvfb = data;
+    struct xwlnest_screen * pvfb = data;
     int ret;
 
     xwlnest_screen_post_damage(pvfb);
@@ -614,7 +614,7 @@ block_handler(void *data, OSTimePtr pTimeout, void *pRead)
 static void
 damage_report(DamagePtr pDamage, RegionPtr pRegion, void *data)
 {
-    vfbScreenInfoPtr pvfb = data;
+    struct xwlnest_screen * pvfb = data;
     pvfb->has_damage = 1;
 }
 
@@ -626,7 +626,7 @@ damage_destroy(DamagePtr pDamage, void *data)
 static Bool
 xwlnest_realize_window(WindowPtr window) {
     ScreenPtr pScreen = window->drawable.pScreen;
-    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+    struct xwlnest_screen * pvfb = &vfbScreens[pScreen->myNum];
     Bool ret;
 
     /* call this function only once */
@@ -655,7 +655,7 @@ xwlnest_realize_window(WindowPtr window) {
 static Bool
 vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 {
-    vfbScreenInfoPtr pvfb = &vfbScreens[pScreen->myNum];
+    struct xwlnest_screen * pvfb = &vfbScreens[pScreen->myNum];
     int dpix = monitorResolution, dpiy = monitorResolution;
     int ret;
     char *pbits;

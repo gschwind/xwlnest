@@ -794,7 +794,7 @@ static const struct wl_seat_listener seat_listener = {
 };
 
 static void
-create_input_device(vfbScreenInfoPtr pvfb, uint32_t id, uint32_t version)
+create_input_device(struct xwlnest_screen * pvfb, uint32_t id, uint32_t version)
 {
     struct xwl_seat *xwl_seat;
 
@@ -842,7 +842,7 @@ static void
 input_handler(void *data, struct wl_registry *registry, uint32_t id,
               const char *interface, uint32_t version)
 {
-    vfbScreenInfoPtr pvfb = data;
+    struct xwlnest_screen * pvfb = data;
 
     LogWrite(0, "xwlnest::input_handler\n");
 
@@ -897,7 +897,7 @@ DDXRingBell(int volume, int pitch, int duration)
 void
 InitInput(int argc, char *argv[])
 {
-    vfbScreenInfoPtr pvfb;
+    struct xwlnest_screen * pvfb;
     int i;
 
     mieqInit();
