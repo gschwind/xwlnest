@@ -123,10 +123,6 @@ struct xwlnest_screen {
     DamagePtr damage;
     PixmapPtr output_pixmap;
 
-#ifdef HAVE_MMAP
-    int mmap_fd;
-    char mmap_file[MAXPATHLEN];
-#endif
 };
 
 struct xwl_touch {
