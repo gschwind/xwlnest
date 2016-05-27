@@ -457,6 +457,55 @@ xwlnest_screen_post_damage(struct xwlnest_screen * pvfb)
 }
 
 static void
+xwlnest_paint_window_decoration(struct xwlnest_screen * pvfb) {
+    xRectangle rect[4];
+    ChangeGCVal val;
+
+    GCPtr pGC = GetScratchGC(pvfb->output_pixmap->drawable.depth, pvfb->pScreen);
+    if (!pGC) {
+        return;
+    }
+
+    val.val = 0x00cccccc; // grey
+    ChangeGC(NullClient, pGC, GCForeground, &val);
+    ValidateGC(&pvfb->pixmap->pixmap->drawable, pGC);
+
+    /* menu bar */
+    rect[0].width = pvfb->output_window_width - 1;
+    rect[0].height = pvfb->border_top_size - 1;
+    rect[0].x = 0;
+    rect[0].y = 0;
+
+    /* bottom bar */
+    rect[1].width = pvfb->output_window_width - 1;
+    rect[1].height = pvfb->border_bottom_size - 1;
+    rect[1].x = 0;
+    rect[1].y = pvfb->output_window_height - pvfb->border_bottom_size;
+
+    /* left border */
+    rect[2].width = pvfb->border_left_size - 1;
+    rect[2].height = pvfb->height - 1;
+    rect[2].x = 0;
+    rect[2].y = pvfb->border_top_size;
+
+    /* right border */
+    rect[3].width = pvfb->border_right_size - 1;
+    rect[3].height = pvfb->height - 1;
+    rect[3].x = pvfb->output_window_width - pvfb->border_right_size;
+    rect[3].y = pvfb->border_top_size;
+
+    (*pGC->ops->PolyFillRect)(&(pvfb->pixmap->pixmap->drawable), pGC, 4, rect);
+
+    val.val = 0x00888888; // dark grey
+    ChangeGC(NullClient, pGC, GCForeground, &val);
+    ValidateGC(&pvfb->pixmap->pixmap->drawable, pGC);
+
+    (*pGC->ops->PolyRectangle)(&(pvfb->pixmap->pixmap->drawable), pGC, 4, rect);
+
+    FreeScratchGC(pGC);
+}
+
+static void
 vfbCreateOutputWindow(struct xwlnest_screen * pvfb) {
     struct wl_buffer *buffer;
     struct wl_region *region;
@@ -494,6 +543,8 @@ vfbCreateOutputWindow(struct xwlnest_screen * pvfb) {
     if(pvfb->pixmap == NULL) {
         ErrorF("xwlnest_shm_create_pixmap failed\n");
     }
+
+    xwlnest_paint_window_decoration(pvfb);
 
     buffer = xwlnest_shm_pixmap_get_wl_buffer(pvfb->shm, pvfb->pixmap);
     if (buffer == NULL) {
