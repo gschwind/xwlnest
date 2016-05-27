@@ -94,6 +94,8 @@ struct xwlnest_screen {
     int border_right_size;
     int border_bottom_size;
 
+    xRectangle close_button_area;
+
     int output_window_width;
     int output_window_height;
 

@@ -502,6 +502,13 @@ xwlnest_paint_window_decoration(struct xwlnest_screen * pvfb) {
 
     (*pGC->ops->PolyRectangle)(&(pvfb->pixmap->pixmap->drawable), pGC, 4, rect);
 
+    val.val = 0x00cc0000; // dark grey
+    ChangeGC(NullClient, pGC, GCForeground, &val);
+    ValidateGC(&pvfb->pixmap->pixmap->drawable, pGC);
+
+    (*pGC->ops->PolyFillRect)(&(pvfb->pixmap->pixmap->drawable), pGC, 1,
+            &pvfb->close_button_area);
+
     FreeScratchGC(pGC);
 }
 
@@ -728,11 +735,18 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
     pvfb->border_right_size = 10;
     pvfb->border_bottom_size = 10;
 
+
+
     pvfb->output_window_width = pvfb->border_left_size + pvfb->width +
             pvfb->border_right_size;
 
     pvfb->output_window_height = pvfb->border_top_size + pvfb->height +
             pvfb->border_bottom_size;
+
+    pvfb->close_button_area.width = 50;
+    pvfb->close_button_area.height = pvfb->border_top_size;
+    pvfb->close_button_area.x = pvfb->output_window_width - 50;
+    pvfb->close_button_area.y = 0;
 
     pvfb->pScreen = pScreen;
     pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);

@@ -347,10 +347,18 @@ pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
     if(xwl_pointer->x < xwl_seat->xwl_screen->border_left_size ||
        xwl_pointer->y < xwl_seat->xwl_screen->border_top_size ||
        xwl_pointer->x >= xwl_seat->xwl_screen->output_window_width - xwl_seat->xwl_screen->border_right_size ||
-       xwl_pointer->y >= xwl_seat->xwl_screen->output_window_height - xwl_seat->xwl_screen->border_bottom_size
-    ) {
-        wl_shell_surface_move(xwl_seat->xwl_screen->shell_surface,
-                xwl_seat->seat, serial);
+       xwl_pointer->y >= xwl_seat->xwl_screen->output_window_height - xwl_seat->xwl_screen->border_bottom_size)
+    {
+        if(xwl_seat->xwl_screen->close_button_area.x <= xwl_pointer->x &&
+           xwl_seat->xwl_screen->close_button_area.y <= xwl_pointer->y &&
+           xwl_seat->xwl_screen->close_button_area.x + xwl_seat->xwl_screen->close_button_area.width > xwl_pointer->y &&
+           xwl_seat->xwl_screen->close_button_area.y + xwl_seat->xwl_screen->close_button_area.height > xwl_pointer->y)
+        {
+            dispatchException |= DE_TERMINATE;
+        } else {
+            wl_shell_surface_move(xwl_seat->xwl_screen->shell_surface,
+                    xwl_seat->seat, serial);
+        }
         return;
     }
 
