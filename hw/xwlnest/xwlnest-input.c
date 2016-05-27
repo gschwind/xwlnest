@@ -241,7 +241,7 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
     xwl_seat->has_focus_window = 1;
 
     master = GetMaster(dev, POINTER_OR_FLOAT);
-    (*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
+    //(*pScreen->SetCursorPosition) (dev, pScreen, sx, sy, TRUE);
 
     /* X is very likely to have the wrong idea of what the actual cursor
      * sprite is, so in order to force updating the cursor lets set the
@@ -305,9 +305,19 @@ pointer_handle_motion(void *data, struct wl_pointer *pointer,
     if (!xwl_seat->has_focus_window)
         return;
 
+    if(sx < xwl_seat->xwl_screen->border_left_size ||
+       sy < xwl_seat->xwl_screen->border_top_size ||
+       sx >= xwl_seat->xwl_screen->output_window_width - xwl_seat->xwl_screen->border_right_size ||
+       sy >= xwl_seat->xwl_screen->output_window_height - xwl_seat->xwl_screen->border_bottom_size
+    ) {
+        // TODO: border motion
+        return;
+    }
+
+
     /* root window areat (0, 0) */
-    dx = 0; //xwl_seat->focus_window->window->drawable.x;
-    dy = 0; //xwl_seat->focus_window->window->drawable.y;
+    dx = -xwl_seat->xwl_screen->border_left_size; //xwl_seat->focus_window->window->drawable.x;
+    dy = -xwl_seat->xwl_screen->border_top_size; //xwl_seat->focus_window->window->drawable.y;
 
     valuator_mask_zero(&mask);
     valuator_mask_set(&mask, 0, dx + sx);
@@ -587,8 +597,17 @@ xwl_touch_send_event(struct xwlnest_touch *xwl_touch,
     int32_t dx, dy;
     ValuatorMask mask;
 
-    dx = 0; //xwl_touch->window->window->drawable.x;
-    dy = 0; //xwl_touch->window->window->drawable.y;
+    if(xwl_touch->x < xwl_seat->xwl_screen->border_left_size ||
+       xwl_touch->y < xwl_seat->xwl_screen->border_top_size ||
+       xwl_touch->x >= xwl_seat->xwl_screen->output_window_width - xwl_seat->xwl_screen->border_right_size ||
+       xwl_touch->y >= xwl_seat->xwl_screen->output_window_height - xwl_seat->xwl_screen->border_bottom_size)
+    {
+        // TODO: border motion
+        return;
+    }
+
+    dx = -xwl_seat->xwl_screen->border_left_size; //xwl_touch->window->window->drawable.x;
+    dy = -xwl_seat->xwl_screen->border_top_size; //xwl_touch->window->window->drawable.y;
 
     valuator_mask_zero(&mask);
     valuator_mask_set(&mask, 0, dx + xwl_touch->x);

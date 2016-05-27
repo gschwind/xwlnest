@@ -89,6 +89,14 @@ struct xwlnest_screen {
     int sizeInBytes;
     int ncolors;
 
+    int border_top_size;
+    int border_left_size;
+    int border_right_size;
+    int border_bottom_size;
+
+    int output_window_width;
+    int output_window_height;
+
     Pixel blackPixel;
     Pixel whitePixel;
     unsigned int lineBias;

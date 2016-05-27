@@ -434,9 +434,11 @@ xwlnest_screen_post_damage(struct xwlnest_screen * pvfb)
                 int w = pBox->x2 - pBox->x1;
                 int h = pBox->y2 - pBox->y1;
 
-                wl_surface_damage(pvfb->surface, x, y, w, h);
+                wl_surface_damage(pvfb->surface, pvfb->border_left_size + x,
+                        pvfb->border_top_size + y, w, h);
                 (*pGC->ops->CopyArea)(&pvfb->output_pixmap->drawable,
-                        &pvfb->pixmap->pixmap->drawable, pGC, x, y, w, h, x, y);
+                        &pvfb->pixmap->pixmap->drawable, pGC, x, y, w, h,
+                        pvfb->border_left_size + x, pvfb->border_top_size + y);
 
                 pBox++;
             }
@@ -482,11 +484,13 @@ vfbCreateOutputWindow(struct xwlnest_screen * pvfb) {
         ErrorF("Failed creating region\n");
     }
 
-    wl_region_add(region, 0, 0, pvfb->width, pvfb->height);
+    wl_region_add(region, 0, 0, pvfb->output_window_width,
+            pvfb->output_window_height);
     wl_surface_set_opaque_region(pvfb->surface, region);
     wl_region_destroy(region);
 
-    pvfb->pixmap = xwlnest_shm_create_pixmap(pvfb->pScreen, pvfb->width, pvfb->height, pvfb->depth);
+    pvfb->pixmap = xwlnest_shm_create_pixmap(pvfb->pScreen,
+            pvfb->output_window_width, pvfb->output_window_height, pvfb->depth);
     if(pvfb->pixmap == NULL) {
         ErrorF("xwlnest_shm_create_pixmap failed\n");
     }
@@ -497,7 +501,8 @@ vfbCreateOutputWindow(struct xwlnest_screen * pvfb) {
     }
 
     wl_surface_attach(pvfb->surface, buffer, 0, 0);
-    wl_surface_damage(pvfb->surface, 0, 0, pvfb->width, pvfb->height);
+    wl_surface_damage(pvfb->surface, 0, 0, pvfb->output_window_width,
+            pvfb->output_window_height);
 
     pvfb->frame_callback = wl_surface_frame(pvfb->surface);
     wl_callback_add_listener(pvfb->frame_callback, &frame_listener, pvfb);
@@ -666,6 +671,17 @@ vfbScreenInit(ScreenPtr pScreen, int argc, char **argv)
 
     if (dpiy == 0)
         dpiy = 100;
+
+    pvfb->border_top_size = 30;
+    pvfb->border_left_size = 10;
+    pvfb->border_right_size = 10;
+    pvfb->border_bottom_size = 10;
+
+    pvfb->output_window_width = pvfb->border_left_size + pvfb->width +
+            pvfb->border_right_size;
+
+    pvfb->output_window_height = pvfb->border_top_size + pvfb->height +
+            pvfb->border_bottom_size;
 
     pvfb->pScreen = pScreen;
     pvfb->paddedBytesWidth = PixmapBytePad(pvfb->width, pvfb->depth);
