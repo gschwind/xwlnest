@@ -142,6 +142,11 @@ struct xwlnest_touch {
     struct xorg_list link_touch;
 };
 
+struct xwlnest_pointer {
+    struct xwlnest_seat *seat;
+    int x, y;
+};
+
 struct xwlnest_seat {
     DeviceIntPtr pointer;
     DeviceIntPtr keyboard;

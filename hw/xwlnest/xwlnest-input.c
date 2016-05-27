@@ -216,13 +216,12 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface,
                      wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
-    struct xwlnest_seat *xwl_seat = data;
+    struct xwlnest_pointer *xwl_pointer = data;
+    struct xwlnest_seat *xwl_seat = xwl_pointer->seat;
     DeviceIntPtr dev = xwl_seat->pointer;
     DeviceIntPtr master;
     miPointerPtr mipointer;
     int i;
-    int sx = wl_fixed_to_int(sx_w);
-    int sy = wl_fixed_to_int(sy_w);
     ScreenPtr pScreen = xwl_seat->xwl_screen->pScreen;
     ValuatorMask mask;
 
@@ -234,6 +233,9 @@ pointer_handle_enter(void *data, struct wl_pointer *pointer,
      */
     if (surface == NULL)
         return;
+
+    xwl_pointer->x = wl_fixed_to_int(sx_w);
+    xwl_pointer->y = wl_fixed_to_int(sy_w);
 
     xwl_seat->xwl_screen->serial = serial;
     xwl_seat->pointer_enter_serial = serial;
@@ -283,7 +285,8 @@ static void
 pointer_handle_leave(void *data, struct wl_pointer *pointer,
                      uint32_t serial, struct wl_surface *surface)
 {
-    struct xwlnest_seat *xwl_seat = data;
+    struct xwlnest_pointer *xwl_pointer = data;
+    struct xwlnest_seat *xwl_seat = xwl_pointer->seat;
     DeviceIntPtr dev = xwl_seat->pointer;
 
     xwl_seat->xwl_screen->serial = serial;
@@ -296,7 +299,8 @@ static void
 pointer_handle_motion(void *data, struct wl_pointer *pointer,
                       uint32_t time, wl_fixed_t sx_w, wl_fixed_t sy_w)
 {
-    struct xwlnest_seat *xwl_seat = data;
+    struct xwlnest_pointer *xwl_pointer = data;
+    struct xwlnest_seat *xwl_seat = xwl_pointer->seat;
     int32_t dx, dy;
     int sx = wl_fixed_to_int(sx_w);
     int sy = wl_fixed_to_int(sy_w);
@@ -305,12 +309,14 @@ pointer_handle_motion(void *data, struct wl_pointer *pointer,
     if (!xwl_seat->has_focus_window)
         return;
 
+    xwl_pointer->x = sx;
+    xwl_pointer->y = sy;
+
     if(sx < xwl_seat->xwl_screen->border_left_size ||
        sy < xwl_seat->xwl_screen->border_top_size ||
        sx >= xwl_seat->xwl_screen->output_window_width - xwl_seat->xwl_screen->border_right_size ||
        sy >= xwl_seat->xwl_screen->output_window_height - xwl_seat->xwl_screen->border_bottom_size
     ) {
-        // TODO: border motion
         return;
     }
 
@@ -331,11 +337,22 @@ static void
 pointer_handle_button(void *data, struct wl_pointer *pointer, uint32_t serial,
                       uint32_t time, uint32_t button, uint32_t state)
 {
-    struct xwlnest_seat *xwl_seat = data;
+    struct xwlnest_pointer *xwl_pointer = data;
+    struct xwlnest_seat *xwl_seat = xwl_pointer->seat;
     int index;
     ValuatorMask mask;
 
     xwl_seat->xwl_screen->serial = serial;
+
+    if(xwl_pointer->x < xwl_seat->xwl_screen->border_left_size ||
+       xwl_pointer->y < xwl_seat->xwl_screen->border_top_size ||
+       xwl_pointer->x >= xwl_seat->xwl_screen->output_window_width - xwl_seat->xwl_screen->border_right_size ||
+       xwl_pointer->y >= xwl_seat->xwl_screen->output_window_height - xwl_seat->xwl_screen->border_bottom_size
+    ) {
+        wl_shell_surface_move(xwl_seat->xwl_screen->shell_surface,
+                xwl_seat->seat, serial);
+        return;
+    }
 
     switch (button) {
     case BTN_LEFT:
@@ -363,7 +380,8 @@ static void
 pointer_handle_axis(void *data, struct wl_pointer *pointer,
                     uint32_t time, uint32_t axis, wl_fixed_t value)
 {
-    struct xwlnest_seat *xwl_seat = data;
+    struct xwlnest_pointer *xwl_pointer = data;
+    struct xwlnest_seat *xwl_seat = xwl_pointer->seat;
     int index;
     const int divisor = 10;
     ValuatorMask mask;
@@ -602,7 +620,8 @@ xwl_touch_send_event(struct xwlnest_touch *xwl_touch,
        xwl_touch->x >= xwl_seat->xwl_screen->output_window_width - xwl_seat->xwl_screen->border_right_size ||
        xwl_touch->y >= xwl_seat->xwl_screen->output_window_height - xwl_seat->xwl_screen->border_bottom_size)
     {
-        // TODO: border motion
+        wl_shell_surface_move(xwl_seat->xwl_screen->shell_surface,
+                xwl_seat->seat, xwl_seat->pointer_enter_serial);
         return;
     }
 
@@ -736,13 +755,16 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
                          enum wl_seat_capability caps)
 {
     struct xwlnest_seat *xwl_seat = data;
+    struct xwlnest_pointer *xwl_pointer;
 
     LogWrite(0, "xwlnest::seat_handle_capabilities\n");
 
     if (caps & WL_SEAT_CAPABILITY_POINTER && xwl_seat->wl_pointer == NULL) {
         xwl_seat->wl_pointer = wl_seat_get_pointer(seat);
+        xwl_pointer = calloc(1, sizeof *xwl_pointer);
         wl_pointer_add_listener(xwl_seat->wl_pointer,
-                                &pointer_listener, xwl_seat);
+                                &pointer_listener, xwl_pointer);
+        xwl_pointer->seat = xwl_seat;
 
         if (xwl_seat->pointer == NULL) {
             xwl_seat_set_cursor(xwl_seat);
@@ -752,8 +774,10 @@ seat_handle_capabilities(void *data, struct wl_seat *seat,
         }
         EnableDevice(xwl_seat->pointer, TRUE);
     } else if (!(caps & WL_SEAT_CAPABILITY_POINTER) && xwl_seat->wl_pointer) {
+        xwl_pointer = wl_pointer_get_user_data(xwl_seat->wl_pointer);
         wl_pointer_release(xwl_seat->wl_pointer);
         xwl_seat->wl_pointer = NULL;
+        free(xwl_pointer);
 
         if (xwl_seat->pointer)
             DisableDevice(xwl_seat->pointer, TRUE);
